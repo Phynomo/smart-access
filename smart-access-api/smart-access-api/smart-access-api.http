@@ -1,0 +1,6 @@
+@smart_access_api_HostAddress = http://localhost:5102
+
+GET {{smart_access_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
