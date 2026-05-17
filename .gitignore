@@ -1,3 +1,7 @@
 /smart-access-api/.vs
 /smart-access-api/smart-access-api/obj
 /smart-access-api/smart-access-api/bin
+
+smart-access-api/smart-access-api/Config/firebase-smart-access.json
+
+smart-access-api/.idea/.idea.smart-access-api/.idea/
