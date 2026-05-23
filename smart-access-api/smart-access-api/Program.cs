@@ -1,16 +1,20 @@
 using Scalar.AspNetCore;
+using smart_access_api.Persistence;
 using smart_access_api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton<FirebaseService>();
-builder.Services.AddScoped<AuthService>();
 
+// Firestore: una sola instancia de FirebaseService (que arma el FirestoreDb) y
+// un FirestoreContext por scope que lo envuelve y expone las colecciones.
+builder.Services.AddSingleton<FirebaseService>();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<FirebaseService>().FirestoreDb);
+builder.Services.AddScoped<FirestoreContext>();
+
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 
@@ -22,7 +26,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
