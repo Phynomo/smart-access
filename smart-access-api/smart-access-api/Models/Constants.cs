@@ -31,4 +31,17 @@ namespace smart_access_api.Models
         public const string Authorized = "authorized";
         public const string Rejected = "rejected";
     }
+
+    // Categorías válidas para una LabNote.
+    public static class LabCategories
+    {
+        public const string Quimica = "Quimica";
+        public const string Biologia = "Biologia";
+        public const string Fisica = "Fisica";
+        public const string Otro = "Otro";
+
+        public static bool IsValid(string category) =>
+            category == Quimica || category == Biologia ||
+            category == Fisica || category == Otro;
+    }
 }
