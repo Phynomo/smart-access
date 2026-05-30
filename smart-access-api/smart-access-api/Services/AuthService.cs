@@ -1,41 +1,34 @@
+using Google.Cloud.Firestore;
 using smart_access_api.DTOs;
 using smart_access_api.Models;
+using smart_access_api.Persistence;
 
 namespace smart_access_api.Services
 {
     public class AuthService
     {
-        private readonly FirebaseService _firebaseService;
+        private readonly FirestoreContext _context;
         private readonly IConfiguration _configuration;
 
-        public AuthService(FirebaseService firebaseService, IConfiguration configuration)
+        public AuthService(FirestoreContext context, IConfiguration configuration)
         {
-            _firebaseService = firebaseService;
+            _context = context;
             _configuration = configuration;
         }
 
-
         public async Task<User> Login(string email, string password)
         {
-            var usersCollection = _firebaseService.GetCollection("users");
-            var snapshot = await usersCollection
-                .WhereEqualTo("Email", email)
+            // Nota: los nombres de campo aquí ahora son camelCase porque los
+            // modelos están anotados con [FirestoreProperty("email")], etc.
+            var snapshot = await _context.Users
+                .WhereEqualTo("email", email)
                 .Limit(1)
                 .GetSnapshotAsync();
 
             if (snapshot.Count == 0)
                 throw new Exception("Invalid credentials");
 
-            var doc = snapshot.Documents[0];
-            var user = new User
-            {
-                Id = doc.GetValue<string>("Id"),
-                Name = doc.GetValue<string>("Name"),
-                Email = doc.GetValue<string>("Email"),
-                PasswordHash = doc.GetValue<string>("PasswordHash"),
-                Role = doc.GetValue<string>("Role"),
-                CreatedAt = doc.GetValue<DateTime>("CreatedAt")
-            };
+            var user = snapshot.Documents[0].ConvertTo<User>();
 
             if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 throw new Exception("Invalid credentials");
@@ -45,12 +38,11 @@ namespace smart_access_api.Services
 
         public async Task<User> Register(RegisterDto dto)
         {
-            var usersCollection = _firebaseService.GetCollection("users");
-            var existing = await usersCollection
-                .WhereEqualTo("Email", dto.Email)
+            var existing = await _context.Users
+                .WhereEqualTo("email", dto.Email)
                 .Limit(1)
                 .GetSnapshotAsync();
-            
+
             if (existing.Count > 0)
                 throw new Exception("User already exists");
 
@@ -60,55 +52,25 @@ namespace smart_access_api.Services
                 Name = dto.Name,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = "user",
-                CreatedAt = DateTime.UtcNow
-
+                Role = UserRoles.Resident,
+                IsActive = true,
+                CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
             };
 
-            await usersCollection.Document(user.Id).SetAsync(new Dictionary<string, object>
-            {
-                { "Id", user.Id },
-                { "Name", user.Name },
-                { "Email", user.Email },
-                { "PasswordHash", user.PasswordHash },
-                { "Role", user.Role },
-                { "CreatedAt", user.CreatedAt }
-            });
-
+            await _context.Users.Document(user.Id).SetAsync(user);
             return user;
         }
 
-        public async Task<User> GetById(string id)
+        public async Task<User?> GetById(string id)
         {
-            var doc = await _firebaseService.GetCollection("users").Document(id).GetSnapshotAsync();
-            if (!doc.Exists)
-                return null;
-
-            return new User
-            {
-                Id = doc.GetValue<string>("Id"),
-                Name = doc.GetValue<string>("Name"),
-                Email = doc.GetValue<string>("Email"),
-                PasswordHash = doc.GetValue<string>("PasswordHash"),
-                Role = doc.GetValue<string>("Role"),
-                CreatedAt = doc.GetValue<DateTime>("CreatedAt")
-            };
+            var doc = await _context.Users.Document(id).GetSnapshotAsync();
+            return doc.Exists ? doc.ConvertTo<User>() : null;
         }
 
         public async Task<List<User>> GetAll()
         {
-            var snapshot = await _firebaseService.GetCollection("users").GetSnapshotAsync();
-            return snapshot.Documents.Select(doc => new User
-            {
-                Id = doc.GetValue<string>("Id"),
-                Name = doc.GetValue<string>("Name"),
-                Email = doc.GetValue<string>("Email"),
-                PasswordHash = doc.GetValue<string>("PasswordHash"),
-                Role = doc.GetValue<string>("Role"),
-                CreatedAt = doc.GetValue<DateTime>("CreatedAt")
-            }).ToList();
+            var snapshot = await _context.Users.GetSnapshotAsync();
+            return snapshot.Documents.Select(d => d.ConvertTo<User>()).ToList();
         }
-
-
     }
 }
