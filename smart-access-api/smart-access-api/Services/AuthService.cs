@@ -1,4 +1,8 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Google.Cloud.Firestore;
+using Microsoft.IdentityModel.Tokens;
 using smart_access_api.DTOs;
 using smart_access_api.Models;
 using smart_access_api.Persistence;
@@ -16,7 +20,7 @@ namespace smart_access_api.Services
             _configuration = configuration;
         }
 
-        public async Task<User> Login(string email, string password)
+        public async Task<string> Login(string email, string password)
         {
             // Nota: los nombres de campo aquí ahora son camelCase porque los
             // modelos están anotados con [FirestoreProperty("email")], etc.
@@ -33,7 +37,7 @@ namespace smart_access_api.Services
             if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 throw new Exception("Invalid credentials");
 
-            return user;
+            return GenerateToken(user); ;
         }
 
         public async Task<User> Register(RegisterDto dto)
@@ -72,5 +76,34 @@ namespace smart_access_api.Services
             var snapshot = await _context.Users.GetSnapshotAsync();
             return snapshot.Documents.Select(d => d.ConvertTo<User>()).ToList();
         }
+
+
+
+        private string GenerateToken(User user)
+        {
+            // El token lleva cierta informacion, Id, Email y Role del usuario que hizo login
+            // Para proteccion de los endpoints, se sabe quien los esta llamando
+            var claims = new[]
+            {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role)
+        };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+
+                    issuer: _configuration["Jwt:Issuer"], //Quien lo genera, nuestro token lo genera la app
+                    audience: _configuration["Jwt:Issuer"], // Para quien lo genera, clientes / front-end
+                    claims: claims, // Estos son los datos del usuario
+                    expires: DateTime.UtcNow.AddHours(8), //Tiempo de vida del token
+                    signingCredentials: creds // Firma de seguridad
+                    );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }

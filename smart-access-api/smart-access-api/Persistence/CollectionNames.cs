@@ -10,6 +10,7 @@ namespace smart_access_api.Persistence
         public const string Vehicles = "vehicles";
         public const string QRCodes = "qrcodes";
         public const string AccessEvents = "accessevents";
+        public const string LabNotes = "labnotes";
 
         // Opcional: agregado precalculado del dashboard. Sólo se usa si se
         // habilita el caché de estadísticas (ver MODELS.md §6).
