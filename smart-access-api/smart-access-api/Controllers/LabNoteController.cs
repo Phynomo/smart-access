@@ -54,14 +54,12 @@ public class LabNoteController : ControllerBase
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var note = await _labNoteService.GetById(id);
-        if (note == null)
-            return NotFound();
-
-        if (note.UserId != userId)
-            return Forbid();
-
-        await _labNoteService.Delete(id);
-        return NoContent();
+        var result = await _labNoteService.Delete(id, userId);
+        return result switch
+        {
+            DeleteResult.NotFound => NotFound(),
+            DeleteResult.Forbidden => Forbid(),
+            _ => NoContent()
+        };
     }
 }
