@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Google.Cloud.Firestore;
 using Microsoft.IdentityModel.Tokens;
+using smart_access_api.Common;
 using smart_access_api.DTOs;
 using smart_access_api.Models;
 using smart_access_api.Persistence;
@@ -20,41 +21,54 @@ namespace smart_access_api.Services
             _configuration = configuration;
         }
 
-        public async Task<string> Login(string email, string password)
+        // Login flexible: el identificador puede ser un correo o un número de casa.
+        public async Task<LoginResponseDto> Login(string identifier, string password)
         {
-            // Nota: los nombres de campo aquí ahora son camelCase porque los
-            // modelos están anotados con [FirestoreProperty("email")], etc.
-            var snapshot = await _context.Users
-                .WhereEqualTo("email", email)
-                .Limit(1)
-                .GetSnapshotAsync();
+            identifier = (identifier ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(identifier))
+                throw BusinessException.BadRequest("Debes indicar tu correo o número de casa.");
 
+            // Si parece correo, se busca por email; de lo contrario, por número de casa.
+            var query = identifier.Contains('@')
+                ? _context.Users.WhereEqualTo("email", identifier.ToLowerInvariant())
+                : _context.Users.WhereEqualTo("houseNumber", identifier);
+
+            var snapshot = await query.Limit(1).GetSnapshotAsync();
             if (snapshot.Count == 0)
-                throw new Exception("Invalid credentials");
+                throw BusinessException.Unauthorized("Credenciales inválidas.");
 
             var user = snapshot.Documents[0].ConvertTo<User>();
 
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-                throw new Exception("Invalid credentials");
+            if (!user.IsActive)
+                throw BusinessException.Forbidden("La cuenta está desactivada. Contacta al administrador.");
 
-            return GenerateToken(user); ;
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                throw BusinessException.Unauthorized("Credenciales inválidas.");
+
+            return new LoginResponseDto
+            {
+                Token = GenerateToken(user),
+                User = UserResponseDto.From(user),
+            };
         }
 
         public async Task<User> Register(RegisterDto dto)
         {
+            var email = dto.Email.Trim().ToLowerInvariant();
+
             var existing = await _context.Users
-                .WhereEqualTo("email", dto.Email)
+                .WhereEqualTo("email", email)
                 .Limit(1)
                 .GetSnapshotAsync();
 
             if (existing.Count > 0)
-                throw new Exception("User already exists");
+                throw BusinessException.Conflict("Ya existe una cuenta con ese correo.");
 
             var user = new User
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = dto.Name,
-                Email = dto.Email,
+                Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Role = UserRoles.Resident,
                 IsActive = true,
@@ -77,33 +91,29 @@ namespace smart_access_api.Services
             return snapshot.Documents.Select(d => d.ConvertTo<User>()).ToList();
         }
 
-
-
         private string GenerateToken(User user)
         {
-            // El token lleva cierta informacion, Id, Email y Role del usuario que hizo login
-            // Para proteccion de los endpoints, se sabe quien los esta llamando
+            // El token lleva Id, Email y Role del usuario; así los endpoints saben
+            // quién llama y con qué rol.
             var claims = new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+            };
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(8),
+                signingCredentials: creds);
 
-                    issuer: _configuration["Jwt:Issuer"], //Quien lo genera, nuestro token lo genera la app
-                    audience: _configuration["Jwt:Issuer"], // Para quien lo genera, clientes / front-end
-                    claims: claims, // Estos son los datos del usuario
-                    expires: DateTime.UtcNow.AddHours(8), //Tiempo de vida del token
-                    signingCredentials: creds // Firma de seguridad
-                    );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
 }

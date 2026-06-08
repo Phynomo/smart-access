@@ -55,9 +55,30 @@ namespace smart_access_api.Services
             return doc.Exists ? doc.ConvertTo<Lab_Note>() : null;
         }
 
-        public async Task Delete(string id)
+        // Elimina la nota validando la pertenencia. Toda la lógica vive aquí:
+        // el controller solo traduce el resultado a un código HTTP.
+        public async Task<DeleteResult> Delete(string id, string userId)
         {
+            var doc = await _context.LabNotes.Document(id).GetSnapshotAsync();
+            if (!doc.Exists)
+                return DeleteResult.NotFound;
+
+            var note = doc.ConvertTo<Lab_Note>();
+
+            // Si el UserId del token no coincide con el dueño, no se permite borrar.
+            if (note.UserId != userId)
+                return DeleteResult.Forbidden;
+
             await _context.LabNotes.Document(id).DeleteAsync();
+            return DeleteResult.Deleted;
         }
+    }
+
+    // Resultado posible de una operación de borrado de nota.
+    public enum DeleteResult
+    {
+        NotFound,
+        Forbidden,
+        Deleted
     }
 }
