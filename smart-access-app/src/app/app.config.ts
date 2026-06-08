@@ -10,6 +10,16 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     // provideAnimationsAsync(), //Revisar lo de las animaciones
-    providePrimeNG({ theme: { preset: Aura } })
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+        options: {
+          cssLayer: {
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities',
+          },
+        },
+      },
+    })
   ]
 };

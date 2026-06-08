@@ -20,7 +20,7 @@ ng generate --help             # full list of schematics
 
 ## Architecture
 
-**Stack:** Angular 21 (standalone components) + PrimeNG 21 + Capacitor 8 (mobile wrapper).
+**Stack:** Angular 21 (standalone components) + PrimeNG 21 + Tailwind CSS v4 + Capacitor 8 (mobile wrapper).
 
 **Entry points:**
 - `src/main.ts` → bootstraps `App` with `appConfig`
@@ -29,7 +29,11 @@ ng generate --help             # full list of schematics
 
 **Component model:** Standalone components only — no NgModules. Imports are declared directly on each `@Component`.
 
-**Styling:** SCSS throughout. Global styles in `src/styles.scss`. PrimeIcons loaded globally via `angular.json`. PrimeNG uses the **Aura** preset theme (configured in `appConfig`). Note: `provideAnimationsAsync()` is intentionally commented out — verify animation behavior before enabling.
+**Styling:** Dos archivos globales cargados en orden via `angular.json`:
+- `src/styles.css` — entrada de Tailwind v4 (`@import "tailwindcss"` + `@import "tailwindcss-primeui"`). Debe ser `.css`, no `.scss` — Sass intercepta `@import` antes de que PostCSS lo procese.
+- `src/styles.scss` — overrides SCSS globales y reglas custom.
+
+PrimeNG usa el tema **Aura**. `cssLayer` configurado en `appConfig` para que PrimeNG quede entre las capas base y utilities de Tailwind, evitando conflictos de especificidad. El plugin `tailwindcss-primeui` expone los tokens de diseño de PrimeNG como utilidades Tailwind (ej. `bg-primary`, `text-surface-500`). PostCSS configurado via `.postcssrc.json`. Note: `provideAnimationsAsync()` está comentado intencionalmente.
 
 **Mobile (Capacitor):**
 - App ID: `com.phynomo.smartacess`
