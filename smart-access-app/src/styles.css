@@ -1,2 +1,5 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+
+/* Dark mode basado en clase .dark en <html> */
+@custom-variant dark (&:where(.dark, .dark *));

@@ -1,0 +1,65 @@
+<!-- Menú del usuario (popup) -->
+<p-menu
+  #userMenu
+  [model]="menuItems"
+  [popup]="true"
+  styleClass="user-menu">
+
+  <!-- Cabecera con nombre y rol del usuario -->
+  <ng-template #start>
+    @if (user(); as u) {
+      <div class="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700">
+        <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-tight">{{ u.name }}</p>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 capitalize">{{ u.role }}</p>
+      </div>
+    }
+  </ng-template>
+
+</p-menu>
+
+<header class="bg-slate-900 dark:bg-slate-950 px-4 py-3 flex items-center justify-between shrink-0 safe-top">
+
+  <!-- Logo + Nombre -->
+  <div class="flex items-center gap-2.5">
+    <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-900/50">
+      <i class="pi pi-shield text-white text-base"></i>
+    </div>
+    <div>
+      <p class="text-white font-semibold text-sm leading-none tracking-tight">ResidentPass</p>
+      <p class="text-slate-400 text-[11px] leading-none mt-0.5">Control de Acceso</p>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="flex items-center gap-0.5">
+
+    <!-- Toggle tema -->
+    <button
+      type="button"
+      (click)="theme.toggle()"
+      class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
+      [title]="theme.isDark() ? 'Modo claro' : 'Modo oscuro'">
+      <i class="pi text-slate-400 text-base transition-all"
+        [class.pi-moon]="!theme.isDark()"
+        [class.pi-sun]="theme.isDark()"></i>
+    </button>
+
+    <!-- Notificaciones -->
+    <button
+      type="button"
+      class="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors">
+      <i class="pi pi-bell text-slate-400 text-base"></i>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border-2 border-slate-900 dark:border-slate-950"></span>
+    </button>
+
+    <!-- Avatar → abre menú de usuario -->
+    <button
+      type="button"
+      (click)="userMenu.toggle($event)"
+      class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center cursor-pointer ml-1 hover:bg-blue-500 transition-colors"
+      title="Opciones de cuenta">
+      <span class="text-white text-xs font-bold select-none">{{ initials() }}</span>
+    </button>
+
+  </div>
+</header>

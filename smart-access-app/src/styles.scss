@@ -1,1 +1,25 @@
-/* Global SCSS styles — component overrides and custom rules go here */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ítem "Cerrar sesión" en rojo dentro del p-menu */
+.user-menu .logout-item .p-menuitem-link {
+  color: var(--p-red-500) !important;
+
+  .p-menuitem-icon { color: var(--p-red-500) !important; }
+}
+
+/* Safe-area para dispositivos con notch / home indicator */
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

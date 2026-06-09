@@ -1,0 +1,104 @@
+<div class="p-4 space-y-4 pb-6">
+
+  <!-- Saludo -->
+  <div class="pt-1">
+    <p class="text-slate-400 dark:text-slate-500 text-xs capitalize">{{ today }}</p>
+    <h2 class="text-slate-900 dark:text-slate-100 text-xl font-semibold mt-0.5">Bienvenido, Juan</h2>
+  </div>
+
+  <!-- QR Card principal -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100 text-sm">Tu Código QR</h3>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Permanente · Apto 4B</p>
+      </div>
+      <p-tag value="Activo" severity="success" styleClass="!text-[11px]" />
+    </div>
+
+    <!-- QR Placeholder -->
+    <div class="flex justify-center my-2">
+      <div class="relative w-48 h-48 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+        <i class="pi pi-qrcode text-7xl text-slate-800 dark:text-slate-200"></i>
+        <!-- Esquinas decorativas -->
+        <div class="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-blue-600 rounded-tl-md"></div>
+        <div class="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-blue-600 rounded-tr-md"></div>
+        <div class="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-blue-600 rounded-bl-md"></div>
+        <div class="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-blue-600 rounded-br-md"></div>
+      </div>
+    </div>
+
+    <p-button
+      label="Ampliar código"
+      icon="pi pi-expand"
+      styleClass="w-full mt-3"
+      [outlined]="true"
+      size="small" />
+  </div>
+
+  <!-- Stats rápidas -->
+  <div class="grid grid-cols-2 gap-3">
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 bg-blue-50 dark:bg-blue-950 rounded-xl flex items-center justify-center">
+          <i class="pi pi-sign-in text-blue-600 dark:text-blue-400 text-sm"></i>
+        </div>
+        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Este mes</span>
+      </div>
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100 leading-none">24</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Accesos</p>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 bg-emerald-50 dark:bg-emerald-950 rounded-xl flex items-center justify-center">
+          <i class="pi pi-car text-emerald-600 dark:text-emerald-400 text-sm"></i>
+        </div>
+        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Registrados</span>
+      </div>
+      <p class="text-3xl font-bold text-slate-900 dark:text-slate-100 leading-none">2</p>
+      <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Vehículos</p>
+    </div>
+
+  </div>
+
+  <!-- Accesos recientes -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+
+    <div class="px-4 py-3 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between">
+      <h3 class="font-semibold text-slate-900 dark:text-slate-100 text-sm">Accesos Recientes</h3>
+      <span class="text-blue-600 dark:text-blue-400 text-xs font-medium cursor-pointer">Ver todos</span>
+    </div>
+
+    @for (event of recentEvents; track event.id) {
+      <div class="px-4 py-3 flex items-center gap-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0 active:bg-slate-50 dark:active:bg-slate-700/40 transition-colors">
+
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          [class]="event.type === 'entrada'
+            ? 'bg-emerald-50 dark:bg-emerald-950'
+            : 'bg-red-50 dark:bg-red-950'">
+          <i class="pi text-sm"
+            [class.pi-sign-in]="event.type === 'entrada'"
+            [class.pi-sign-out]="event.type === 'salida'"
+            [class.text-emerald-600]="event.type === 'entrada'"
+            [class.dark:text-emerald-400]="event.type === 'entrada'"
+            [class.text-red-500]="event.type === 'salida'"
+            [class.dark:text-red-400]="event.type === 'salida'"></i>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{{ event.description }}</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{ event.time }}</p>
+        </div>
+
+        <p-tag
+          [value]="event.type === 'entrada' ? 'Entrada' : 'Salida'"
+          [severity]="event.type === 'entrada' ? 'success' : 'danger'"
+          styleClass="!text-[10px] !px-2 !py-0.5 shrink-0" />
+
+      </div>
+    }
+  </div>
+
+</div>

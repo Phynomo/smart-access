@@ -1,0 +1,135 @@
+<div class="safe-top safe-bottom flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-900 p-6 min-h-dvh">
+
+  <!-- Logo -->
+  <div class="flex flex-col items-center gap-3 mb-8">
+    <div class="flex justify-center items-center bg-blue-600 shadow-blue-600/30 shadow-lg rounded-2xl w-16 h-16">
+      <i class="text-white text-3xl pi pi-shield" aria-hidden="true"></i>
+    </div>
+    <div class="text-center">
+      <h1 class="font-bold text-slate-900 dark:text-slate-100 text-2xl tracking-tight">Smart Access</h1>
+      <p class="mt-1 text-slate-400 dark:text-slate-500 text-sm">Control de Acceso Residencial</p>
+    </div>
+  </div>
+
+  <!-- Card con el formulario -->
+  <div class="bg-white dark:bg-slate-800 shadow-sm p-6 border border-slate-100 dark:border-slate-700 rounded-2xl w-full max-w-sm">
+
+    <h2 class="font-semibold text-slate-900 dark:text-slate-100 text-lg">Iniciar sesión</h2>
+    <p class="mt-1 mb-6 text-slate-400 dark:text-slate-500 text-sm">
+      Ingresa con tu correo o número de casa
+    </p>
+
+    <!-- Error -->
+    @if (errorMessage()) {
+      <div role="alert" aria-live="assertive"
+           class="flex items-center gap-2 bg-red-50 dark:bg-red-950/50 mb-4 p-3 border border-red-200 dark:border-red-800 rounded-xl">
+        <i class="text-red-500 dark:text-red-400 pi pi-exclamation-circle shrink-0" aria-hidden="true"></i>
+        <span class="text-red-600 dark:text-red-400 text-sm">{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Inicio biométrico (solo si el dispositivo lo soporta y está activado) -->
+    @if (biometricAvailable() && biometricEnabled()) {
+      <p-button
+        type="button"
+        label="Iniciar con biometría"
+        icon="pi pi-lock-open"
+        severity="secondary"
+        [outlined]="true"
+        styleClass="w-full mb-4"
+        [disabled]="loading()"
+        (onClick)="onBiometricLogin()" />
+
+      <div class="flex items-center gap-3 mb-4">
+        <span class="flex-1 border-slate-200 dark:border-slate-700 border-t"></span>
+        <span class="text-slate-400 dark:text-slate-500 text-xs">o con tu contraseña</span>
+        <span class="flex-1 border-slate-200 dark:border-slate-700 border-t"></span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4" novalidate>
+
+      <!-- Identificador -->
+      <div class="flex flex-col gap-1.5">
+        <label for="login-identifier" class="font-medium text-slate-700 dark:text-slate-300 text-sm">
+          Correo o N° de casa
+        </label>
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-at" />
+          <input
+            id="login-identifier"
+            pInputText
+            type="text"
+            formControlName="identifier"
+            placeholder="ej: juan&#64;mail.com  o  A-101"
+            fluid
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            (input)="clearError()"
+            [attr.aria-invalid]="(submitted() || form.controls.identifier.touched) && form.controls.identifier.invalid"
+            [attr.aria-describedby]="(submitted() || form.controls.identifier.touched) && form.controls.identifier.hasError('required') ? 'login-identifier-error' : null" />
+        </p-iconfield>
+        @if ((submitted() || form.controls.identifier.touched) && form.controls.identifier.hasError('required')) {
+          <span id="login-identifier-error" class="text-red-500 dark:text-red-400 text-xs">Este campo es requerido</span>
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <label for="login-password" class="font-medium text-slate-700 dark:text-slate-300 text-sm">Contraseña</label>
+          <button type="button"
+                  class="bg-transparent p-0 border-0 text-blue-600 dark:text-blue-400 text-xs hover:underline cursor-pointer">
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+        <p-password
+          inputId="login-password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          fluid
+          placeholder="••••••••"
+          autocomplete="current-password"
+          (input)="clearError()"
+          [ariaLabelledBy]="'login-password'" />
+        @if ((submitted() || form.controls.password.touched) && form.controls.password.hasError('required')) {
+          <span id="login-password-error" class="text-red-500 dark:text-red-400 text-xs">Este campo es requerido</span>
+        }
+      </div>
+
+      <!-- Activar biometría para próximos inicios -->
+      @if (biometricAvailable() && !biometricEnabled()) {
+        <div class="flex items-center gap-2">
+          <p-checkbox
+            inputId="remember-biometric"
+            [binary]="true"
+            [ngModel]="rememberBiometric()"
+            (ngModelChange)="rememberBiometric.set($event)"
+            [ngModelOptions]="{ standalone: true }" />
+          <label for="remember-biometric" class="text-slate-600 dark:text-slate-400 text-sm cursor-pointer">
+            Activar inicio con biometría
+          </label>
+        </div>
+      }
+
+      <!-- Botón submit -->
+      <p-button
+        type="submit"
+        label="Iniciar sesión"
+        icon="pi pi-sign-in"
+        styleClass="w-full mt-1"
+        [loading]="loading()" />
+
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <p class="mt-8 text-slate-400 dark:text-slate-600 text-xs text-center">
+    Smart Access v1.0 · © 2026 CEUTEC
+  </p>
+
+</div>

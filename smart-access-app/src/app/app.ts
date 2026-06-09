@@ -1,15 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
-
+  imports: [RouterOutlet],
+  template: '<router-outlet />',
 })
 export class App {
-  protected title = 'smart-access-app';
+  // Inyección temprana para que el tema se aplique antes del primer render
+  private readonly _ = inject(ThemeService);
 }
