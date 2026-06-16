@@ -106,7 +106,7 @@ export class LoginComponent {
         this.form.enable();
         // El API devuelve { message: '...' } en el body del error
         this.errorMessage.set(
-          err//?.error?.message ?? 'Credenciales incorrectas. Intenta de nuevo.',
+          err?.error?.message ?? 'Credenciales incorrectas. Intenta de nuevo.',
         );
       },
       complete: () => this.loading.set(false),
