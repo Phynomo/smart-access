@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using smart_access_api.Common;
@@ -35,6 +36,39 @@ public class AuthController : ControllerBase
         return ApiResponse<UserResponseDto>
             .Created(UserResponseDto.From(user), "Cuenta creada con éxito.")
             .ToActionResult();
+    }
+
+    // El usuario solicita un enlace de recuperación. Siempre responde con éxito
+    // (no revela si el correo/casa existe) para no permitir enumerar cuentas.
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _authService.ForgotPassword(dto.Identifier);
+        return ApiResponse.Ok<object?>(null,
+            "Si la cuenta existe, te enviamos un correo con instrucciones para recuperar tu contraseña.")
+            .ToActionResult();
+    }
+
+    // El usuario llega desde el enlace del correo y define su nueva contraseña.
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        await _authService.ResetPassword(dto.Token, dto.NewPassword);
+        return ApiResponse.Ok<object?>(null, "Contraseña actualizada. Ya puedes iniciar sesión.").ToActionResult();
+    }
+
+    // Cualquier usuario autenticado cambia su propia contraseña. En el primer cambio
+    // (cuenta autogenerada) no se exige la contraseña anterior.
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw BusinessException.Unauthorized();
+
+        var user = await _authService.ChangePassword(userId, dto);
+        return ApiResponse.Ok(UserResponseDto.From(user), "Contraseña actualizada.").ToActionResult();
     }
 
     // Sólo el admin puede consultar usuarios por id o listar todos.

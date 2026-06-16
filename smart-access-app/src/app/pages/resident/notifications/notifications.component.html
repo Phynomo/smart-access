@@ -1,0 +1,38 @@
+<div class="notif-page">
+  <div class="notif-header">
+    <h1 class="notif-title">Notificaciones</h1>
+    @if (unreadCount() > 0) {
+      <span class="unread-badge">{{ unreadCount() }} sin leer</span>
+    }
+  </div>
+
+  @if (notifications().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="pi pi-bell-slash"></i>
+      </div>
+      <p class="empty-text">No tienes notificaciones aún</p>
+      <p class="empty-sub">Cuando un visitante use tu QR, aparecerá aquí.</p>
+    </div>
+  } @else {
+    <ul class="notif-list">
+      @for (n of notifications(); track n.id) {
+        <li class="notif-item" [class.notif-item--unread]="!n.isRead" (click)="markRead(n)">
+          <div class="notif-icon-wrap" [class.icon-wrap--arrived]="isArrival(n)" [class.icon-wrap--departed]="!isArrival(n)">
+            <i class="pi" [class.pi-sign-in]="isArrival(n)" [class.pi-sign-out]="!isArrival(n)"></i>
+          </div>
+          <div class="notif-body">
+            <div class="notif-top">
+              <span class="notif-item-title">{{ n.title }}</span>
+              @if (!n.isRead) {
+                <span class="unread-dot"></span>
+              }
+            </div>
+            <p class="notif-msg">{{ n.message }}</p>
+            <span class="notif-time">{{ relativeTime(n.createdAt) }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

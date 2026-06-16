@@ -49,6 +49,9 @@ namespace smart_access_api.DTOs
         public DateTime? UsedAt { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        // Veces que se ha usado (para QR 'date': 0=sin usar, 1=entrada, 2=entrada+salida).
+        public int UseCount { get; set; }
+
         public static QrCodeResponseDto From(QRCode q) => new()
         {
             Id = q.Id,
@@ -62,6 +65,7 @@ namespace smart_access_api.DTOs
             Token = q.Token,
             UsedAt = q.UsedAt?.ToDateTime(),
             CreatedAt = q.CreatedAt.ToDateTime(),
+            UseCount = q.UseCount,
         };
     }
 }

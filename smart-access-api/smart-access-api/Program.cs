@@ -1,6 +1,7 @@
 using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using smart_access_api.Common;
 using smart_access_api.Persistence;
@@ -26,8 +27,12 @@ builder.Services.AddScoped<LabNoteService>();
 builder.Services.AddScoped<ResidentService>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<QRService>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AccessService>();
 builder.Services.AddScoped<ReportService>();
+
+// Envío de correos (credenciales de nuevos residentes). Config en sección "Email".
+builder.Services.AddScoped<EmailService>();
 
 // Manejo global de excepciones → respuesta ApiResponse uniforme.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -52,6 +57,7 @@ builder.Services.AddControllers()
             return new ObjectResult(response) { StatusCode = StatusCodes.Status400BadRequest };
         };
     });
+    
 builder.Services.AddOpenApi(options =>
 {
     // Registramos el transformer que agrega el botón de Bearer en Scalar
@@ -107,6 +113,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+// Sirve las imágenes subidas (fotos de residentes, etc.) como archivos estáticos
+// públicos bajo /uploads. La carpeta física se crea al arranque si no existe.
+var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "uploads");
+Directory.CreateDirectory(uploadsRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads",
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

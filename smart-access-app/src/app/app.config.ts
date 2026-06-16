@@ -1,13 +1,15 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { definePreset } from '@primeng/themes';
 import { routes } from './app.routes';
+import { AuthService } from './core/services/auth.service';
 
 // Alinea el `primary` del tema con el azul de marca (blue-600) usado en logo y enlaces.
-const ResidentPassPreset = definePreset(Aura, {
+const SmartAccessPreset = definePreset(Aura, {
   semantic: {
     primary: {
       50:  '{blue.50}',
@@ -31,10 +33,18 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideHttpClient(),
     provideRouter(routes),
+    ConfirmationService,
+    MessageService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (auth: AuthService) => () => auth.init(),
+      deps: [AuthService],
+      multi: true,
+    },
     // provideAnimationsAsync(), //Revisar lo de las animaciones
     providePrimeNG({
       theme: {
-        preset: ResidentPassPreset,
+        preset: SmartAccessPreset,
         options: {
           darkModeSelector: '.dark',
           cssLayer: {

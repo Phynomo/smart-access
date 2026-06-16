@@ -1,0 +1,232 @@
+<div class="p-4 space-y-4 pb-6">
+
+  <!-- Encabezado -->
+  <div class="pt-1">
+    <p class="text-muted-color text-xs">Administración</p>
+    <h2 class="text-color text-xl font-semibold mt-0.5">Códigos QR</h2>
+    <p class="text-xs text-muted-color mt-1">
+      Genera y administra los códigos de acceso de cada residente.
+    </p>
+  </div>
+
+  <!-- Selector de residente -->
+  <div class="bg-surface-0 rounded-2xl p-4 shadow-sm border border-surface-200">
+    <label class="block text-xs font-medium text-muted-color mb-1.5">Residente</label>
+    <p-select
+      [options]="residents()"
+      [ngModel]="selectedResident()"
+      (ngModelChange)="onResidentChange($event)"
+      optionLabel="name"
+      [filter]="true"
+      filterBy="name,houseNumber"
+      [loading]="loadingResidents()"
+      placeholder="Selecciona un residente"
+      styleClass="w-full"
+      appendTo="body">
+      <ng-template let-r #item>
+        <div class="flex items-center justify-between gap-3 w-full">
+          <span class="text-sm text-color">{{ r.name }}</span>
+          <span class="text-xs text-muted-color">Casa {{ r.houseNumber }}</span>
+        </div>
+      </ng-template>
+      <ng-template let-r #selectedItem>
+        <span class="text-sm">{{ r.name }} · Casa {{ r.houseNumber }}</span>
+      </ng-template>
+    </p-select>
+  </div>
+
+  @if (hasResident()) {
+
+    <!-- Toggle del formulario de generación -->
+    <div class="flex justify-end">
+      <p-button
+        [label]="showForm() ? 'Cerrar' : 'Generar QR'"
+        [icon]="showForm() ? 'pi pi-times' : 'pi pi-plus'"
+        size="small"
+        [outlined]="showForm()"
+        (onClick)="showForm.set(!showForm())" />
+    </div>
+
+    @if (showForm()) {
+    <!-- Generar nuevo QR de visita -->
+    <form [formGroup]="form" (ngSubmit)="onGenerate()"
+      class="bg-surface-0 rounded-2xl p-4 shadow-sm border border-surface-200 space-y-3">
+
+      <h3 class="font-semibold text-color text-sm flex items-center gap-2">
+        <i class="pi pi-plus-circle text-primary"></i>
+        Generar QR de visita
+      </h3>
+
+      <!-- Tipo de QR -->
+      <div>
+        <label class="block text-xs font-medium text-muted-color mb-1.5">Tipo</label>
+        <p-select
+          formControlName="qrType"
+          [options]="qrTypeOptions"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full"
+          appendTo="body" />
+      </div>
+
+      <!-- Nombre del visitante -->
+      <div>
+        <label class="block text-xs font-medium text-muted-color mb-1.5">Nombre del visitante</label>
+        <input
+          pInputText
+          formControlName="visitorName"
+          placeholder="Ej. María López"
+          class="w-full" />
+        @if (submitted() && form.controls.visitorName.invalid) {
+          <p class="text-[11px] text-red-500 mt-1">Ingresa el nombre del visitante (mín. 2 caracteres).</p>
+        }
+      </div>
+
+      <!-- Fecha válida (sólo 'date') -->
+      @if (isDateType()) {
+        <div>
+          <label class="block text-xs font-medium text-muted-color mb-1.5">Día de la visita</label>
+          <p-datepicker
+            formControlName="validDate"
+            [minDate]="minDate"
+            dateFormat="dd/mm/yy"
+            placeholder="Selecciona la fecha"
+            styleClass="w-full"
+            appendTo="body" />
+          @if (submitted() && form.controls.validDate.invalid) {
+            <p class="text-[11px] text-red-500 mt-1">La fecha de la visita es obligatoria.</p>
+          }
+        </div>
+      } @else {
+        <!-- Vigencia opcional (sólo 'long_term') -->
+        <div>
+          <label class="block text-xs font-medium text-muted-color mb-1.5">
+            Válido hasta <span class="text-muted-color opacity-60">(opcional)</span>
+          </label>
+          <p-datepicker
+            formControlName="validUntil"
+            [minDate]="minDate"
+            dateFormat="dd/mm/yy"
+            placeholder="Máximo de la residencia"
+            styleClass="w-full"
+            appendTo="body" />
+        </div>
+      }
+
+      <p-button
+        type="submit"
+        label="Generar código"
+        icon="pi pi-qrcode"
+        styleClass="w-full"
+        [loading]="generating()" />
+    </form>
+    }
+
+    <!-- Filtros por estado -->
+    <div class="flex items-center gap-2">
+      <button type="button" (click)="showActive.set(!showActive())"
+        class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97]"
+        [class]="showActive()
+          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+          : 'bg-surface-0 text-muted-color border-surface-200'">
+        <i class="pi pi-check-circle text-[10px] mr-1"></i>Activos
+        <span class="ml-1 opacity-80">{{ activeCount() }}</span>
+      </button>
+      <button type="button" (click)="showRevoked.set(!showRevoked())"
+        class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97]"
+        [class]="showRevoked()
+          ? 'bg-red-500 text-white border-red-500 shadow-sm'
+          : 'bg-surface-0 text-muted-color border-surface-200'">
+        <i class="pi pi-ban text-[10px] mr-1"></i>Revocados
+        <span class="ml-1 opacity-80">{{ revokedCount() }}</span>
+      </button>
+    </div>
+
+    <!-- Lista de QR del residente -->
+    <div class="bg-surface-0 rounded-2xl shadow-sm border border-surface-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-surface-100 flex items-center justify-between">
+        <h3 class="font-semibold text-color text-sm">
+          Códigos de {{ selectedResident()?.name }}
+        </h3>
+        <span class="text-xs text-muted-color">{{ filteredQrs().length }}</span>
+      </div>
+
+      @if (loadingQrs()) {
+        <div class="px-4 py-8 text-center text-muted-color text-sm">
+          <i class="pi pi-spin pi-spinner mr-2"></i> Cargando códigos…
+        </div>
+      } @else if (filteredQrs().length === 0) {
+        <div class="px-4 py-8 text-center text-muted-color text-sm">
+          @if (qrs().length === 0) {
+            Este residente aún no tiene códigos QR.
+          } @else {
+            Sin códigos para este filtro.
+          }
+        </div>
+      } @else {
+        @for (qr of filteredQrs(); track qr.id) {
+          <div class="px-4 py-3 border-b border-surface-100 last:border-0"
+            [class.bg-primary-50]="qr.id === justCreatedId()">
+
+            <div class="flex items-center gap-3">
+              <!-- Ícono -->
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                [class]="qr.qrType === 'permanent' ? 'bg-primary-50' : 'bg-surface-100'">
+                <i class="pi pi-qrcode text-sm"
+                  [class.text-primary]="qr.qrType === 'permanent'"
+                  [class.text-muted-color]="qr.qrType !== 'permanent'"></i>
+              </div>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-color truncate">
+                  {{ qr.visitorName ?? 'Residente (permanente)' }}
+                </p>
+                <p class="text-xs text-muted-color mt-0.5">
+                  {{ typeLabel(qr.qrType) }}
+                  @if (qr.validDate) { · {{ qr.validDate | date: 'dd/MM/yyyy' }} }
+                  @else if (qr.expiresAt) { · vence {{ qr.expiresAt | date: 'dd/MM/yyyy' }} }
+                </p>
+              </div>
+
+              <p-tag
+                [value]="statusLabel(qr)"
+                [severity]="statusSeverity(qr)"
+                styleClass="!text-[10px] !px-2 !py-0.5 shrink-0" />
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex items-center gap-2 mt-2 pl-12">
+              <button type="button" (click)="toggleShow(qr)"
+                class="text-xs font-medium text-primary flex items-center gap-1">
+                <i class="pi text-[11px]" [class.pi-eye]="shownQrId() !== qr.id" [class.pi-eye-slash]="shownQrId() === qr.id"></i>
+                {{ shownQrId() === qr.id ? 'Ocultar' : 'Ver QR' }}
+              </button>
+              @if (canRevoke(qr)) {
+                <button type="button" (click)="revoke(qr)"
+                  class="text-xs font-medium text-red-500 flex items-center gap-1 ml-2">
+                  <i class="pi pi-ban text-[11px]"></i> Revocar
+                </button>
+              }
+            </div>
+
+            <!-- QR ampliado -->
+            <div class="qr-reveal" [class.is-open]="shownQrId() === qr.id">
+              <div class="qr-reveal__inner">
+                <div class="pt-3 flex flex-col items-center">
+                  <div #qrBox class="bg-white p-3 rounded-2xl border border-surface-200">
+                    <qrcode [qrdata]="qr.token" [width]="200" errorCorrectionLevel="M" elementType="canvas" cssClass="block" />
+                  </div>
+                  <button type="button" (click)="shareQr(qrBox, qr)"
+                    class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-medium transition-transform active:scale-[0.97]">
+                    <i class="pi pi-share-alt text-xs"></i> Compartir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

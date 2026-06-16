@@ -49,6 +49,21 @@ namespace smart_access_api.DTOs
         public string? PhotoUrl { get; set; }
     }
 
+    // Datos mínimos que el guardia necesita para registrar un acceso manual.
+    public class ResidentLookupDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string HouseNumber { get; set; } = string.Empty;
+
+        public static ResidentLookupDto From(Resident r) => new()
+        {
+            Id = r.Id,
+            Name = r.Name,
+            HouseNumber = r.HouseNumber,
+        };
+    }
+
     public class ResidentResponseDto
     {
         public string Id { get; set; } = string.Empty;

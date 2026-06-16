@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Smart Access · Logo preview</title>
+  <style>
+    :root { --blue: #2563eb; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 48px;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #f1f5f9; color: #0f172a;
+    }
+    h1 { font-size: 18px; font-weight: 700; }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: #64748b; margin-top: 40px; }
+    .row { display: flex; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+    .chip { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .chip span { font-size: 11px; color: #64748b; }
+    /* App icon a varios tamaños */
+    .ic { display: block; box-shadow: 0 6px 20px rgba(2,6,23,.12); }
+    .ic-512 { width: 192px; height: 192px; border-radius: 42px; }
+    .ic-180 { width: 120px; height: 120px; border-radius: 27px; }
+    .ic-96  { width: 96px;  height: 96px;  border-radius: 21px; }
+    .ic-48  { width: 48px;  height: 48px;  border-radius: 11px; }
+    .ic-32  { width: 32px;  height: 32px;  border-radius: 7px; }
+    /* Mark recoloreado */
+    .mark { width: 80px; height: 80px; }
+    .on-white { color: var(--blue); background: #fff; padding: 18px; border-radius: 20px; box-shadow: 0 6px 20px rgba(2,6,23,.1); }
+    .on-blue  { color: #fff; background: var(--blue); padding: 18px; border-radius: 20px; }
+    .on-dark  { color: #fff; background: #0f172a; padding: 18px; border-radius: 20px; }
+    /* Lockup tipo header/login */
+    .lockup { display: flex; align-items: center; gap: 14px; }
+    .badge { display: grid; place-items: center; width: 56px; height: 56px; background: var(--blue);
+             border-radius: 16px; box-shadow: 0 8px 20px rgba(37,99,235,.3); color: #fff; }
+    .badge svg { width: 34px; height: 34px; }
+    .brand b { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+    .brand small { color: #64748b; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Smart Access — propuesta de logo</h1>
+
+  <h2>App icon (icon.svg) a tamaños reales</h2>
+  <div class="row">
+    <div class="chip"><img class="ic ic-512" src="public/icon.svg" alt=""><span>192–512px</span></div>
+    <div class="chip"><img class="ic ic-180" src="public/icon.svg" alt=""><span>120/180px</span></div>
+    <div class="chip"><img class="ic ic-96"  src="public/icon.svg" alt=""><span>96px</span></div>
+    <div class="chip"><img class="ic ic-48"  src="public/icon.svg" alt=""><span>48px</span></div>
+    <div class="chip"><img class="ic ic-32"  src="public/icon.svg" alt=""><span>32px favicon</span></div>
+  </div>
+
+  <h2>Mark (logo-mark.svg, blanco) sobre fondos de color</h2>
+  <div class="row">
+    <div class="on-blue"><img class="mark" src="public/logo-mark.svg" alt=""></div>
+    <div class="on-dark"><img class="mark" src="public/logo-mark.svg" alt=""></div>
+    <div class="chip"><img class="ic ic-96" src="public/icon.svg" alt=""><span>icon.svg</span></div>
+  </div>
+
+  <h2>Lockup (como en login / header)</h2>
+  <div class="row">
+    <div class="lockup">
+      <div class="badge"><img src="public/logo-mark.svg" alt=""></div>
+      <div class="brand"><b>Smart Access</b><small>Control de Acceso Residencial</small></div>
+    </div>
+  </div>
+</body>
+</html>

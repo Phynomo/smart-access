@@ -14,6 +14,8 @@ export interface UserResponse {
   role: 'admin' | 'security' | 'resident';
   qrPermanentId: string | null;
   isActive: boolean;
+  // True si la cuenta fue creada con clave autogenerada y aún no la ha cambiado.
+  mustChangePassword: boolean;
   createdAt: string;
 }
 

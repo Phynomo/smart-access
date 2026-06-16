@@ -1,7 +1,7 @@
-# Modelos de datos — ResidentPass
+# Modelos de datos — Smart Access
 
 Este documento explica **por qué existe cada modelo** y cómo se mapea a los requerimientos
-del proyecto (PDF `Proyecto_ResidentPass.pdf`). El backend usa Firestore, así que cada
+del proyecto (PDF `Proyecto_Smart Access.pdf`). El backend usa Firestore, así que cada
 modelo corresponde a una colección (excepto `AccessStatistics`, que es un agregado en memoria).
 
 > **Estilo de implementación.** Los modelos están anotados con `[FirestoreData]` /

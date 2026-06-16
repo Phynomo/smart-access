@@ -46,6 +46,42 @@ namespace smart_access_api.Controllers
             return ApiResponse.Ok<object?>(null, "Residente desactivado.").ToActionResult();
         }
 
+        // Admin: reactiva un residente dado de baja (vuelve isActive = true).
+        [HttpPost("{id}/reactivate")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> Reactivate(string id)
+        {
+            await _residentService.Reactivate(id);
+            return ApiResponse.Ok<object?>(null, "Residente reactivado.").ToActionResult();
+        }
+
+        // Admin: restablece la contraseña del residente. Genera una temporal y se la
+        // envía por correo; el residente deberá cambiarla en su próximo ingreso.
+        [HttpPost("{id}/reset-password")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            await _residentService.ResetPassword(id);
+            return ApiResponse.Ok<object?>(
+                null, "Se envió un correo al residente para restablecer su contraseña.").ToActionResult();
+        }
+
+        // Seguridad: busca un residente por número de casa para el registro manual.
+        // Devuelve sólo id/nombre/casa — sin datos sensibles.
+        [HttpGet("lookup")]
+        [Authorize(Roles = $"{UserRoles.Security},{UserRoles.Admin}")]
+        public async Task<IActionResult> Lookup([FromQuery] string houseNumber)
+        {
+            if (string.IsNullOrWhiteSpace(houseNumber))
+                throw BusinessException.BadRequest("El número de casa es obligatorio.");
+
+            var resident = await _residentService.GetByHouseNumber(houseNumber);
+            if (resident is null)
+                throw BusinessException.NotFound("No se encontró un residente activo con ese número de casa.");
+
+            return ApiResponse.Ok(ResidentLookupDto.From(resident)).ToActionResult();
+        }
+
         // Admin: lista todos los residentes (filtro opcional onlyActive).
         [HttpGet]
         [Authorize(Roles = UserRoles.Admin)]

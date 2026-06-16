@@ -76,7 +76,7 @@ export class BiometricService {
   async authenticate(): Promise<StoredCredentials> {
     const creds = await NativeBiometric.getSecureCredentials({
       server: this.server,
-      reason: 'Inicia sesión en ResidentPass',
+      reason: 'Inicia sesión en Smart Access',
       title: 'Inicio de sesión',
       subtitle: 'Verifica tu identidad',
       negativeButtonText: 'Cancelar',

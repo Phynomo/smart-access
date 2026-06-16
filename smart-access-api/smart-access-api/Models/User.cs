@@ -32,6 +32,19 @@ namespace smart_access_api.Models
         [FirestoreProperty("isActive")]
         public bool IsActive { get; set; } = true;
 
+        // True cuando la cuenta se creó con una contraseña autogenerada: en el primer
+        // cambio NO se pide la contraseña anterior. Se limpia tras cambiarla.
+        [FirestoreProperty("mustChangePassword")]
+        public bool MustChangePassword { get; set; } = false;
+
+        // Token de un solo uso para el flujo de "olvidé mi contraseña" (self-service).
+        // Null cuando no hay una solicitud de restablecimiento pendiente.
+        [FirestoreProperty("resetToken")]
+        public string? ResetToken { get; set; }
+
+        [FirestoreProperty("resetTokenExpiresAt")]
+        public Timestamp? ResetTokenExpiresAt { get; set; }
+
         [FirestoreProperty("createdAt")]
         public Timestamp CreatedAt { get; set; } = Timestamp.FromDateTime(DateTime.UtcNow);
     }

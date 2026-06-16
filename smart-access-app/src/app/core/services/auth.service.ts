@@ -1,24 +1,33 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { StorageService } from './storage.service';
 import { LoginRequest, LoginResponse, UserResponse } from '../models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(ApiService);
+  private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
 
   private readonly TOKEN_KEY = 'rp-token';
   private readonly USER_KEY = 'rp-user';
 
-  readonly currentUser = signal<UserResponse | null>(this.restoreUser());
+  readonly currentUser = signal<UserResponse | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
 
-  constructor() {
-    // Restaura el token guardado para que las peticiones posteriores estén autenticadas
-    const token = localStorage.getItem(this.TOKEN_KEY);
-    if (token) this.api.setToken(token);
+  /**
+   * Llamado por APP_INITIALIZER antes de que el router active cualquier ruta.
+   * Lee token y usuario del storage nativo y restaura la sesión.
+   */
+  async init(): Promise<void> {
+    const token = await this.storage.get(this.TOKEN_KEY);
+    const user = await this.storage.getJson<UserResponse>(this.USER_KEY);
+    if (token && user) {
+      this.api.setToken(token);
+      this.currentUser.set(user);
+    }
   }
 
   // ── Login ─────────────────────────────────────────────────────────────────
@@ -30,8 +39,30 @@ export class AuthService {
       tap((response) => {
         this.api.setToken(response.data.token);
         this.currentUser.set(response.data.user);
-        localStorage.setItem(this.TOKEN_KEY, response.data.token);
-        localStorage.setItem(this.USER_KEY, JSON.stringify(response.data.user));
+        void this.storage.set(this.TOKEN_KEY, response.data.token);
+        void this.storage.setJson(this.USER_KEY, response.data.user);
+      }),
+    );
+  }
+
+  // ── Recuperación de contraseña ──────────────────────────────────────────
+
+  forgotPassword(identifier: string): Observable<{ data: null; message: string }> {
+    return this.api.post<null>('auth/forgot-password', { identifier });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<{ data: null; message: string }> {
+    return this.api.post<null>('auth/reset-password', { token, newPassword });
+  }
+
+  // ── Cambio de contraseña ────────────────────────────────────────────────
+
+  changePassword(oldPassword: string | null, newPassword: string): Observable<UserResponse> {
+    return this.api.post<UserResponse>('auth/change-password', { oldPassword, newPassword }).pipe(
+      map((response) => response.data),
+      tap((user) => {
+        this.currentUser.set(user);
+        void this.storage.setJson(this.USER_KEY, user);
       }),
     );
   }
@@ -41,20 +72,7 @@ export class AuthService {
   logout(): void {
     this.api.clearToken();
     this.currentUser.set(null);
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    void this.storage.clear();
     this.router.navigate(['/login']);
-  }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
-  private restoreUser(): UserResponse | null {
-    const stored = localStorage.getItem(this.USER_KEY);
-    if (!stored) return null;
-    try {
-      return JSON.parse(stored) as UserResponse;
-    } catch {
-      return null;
-    }
   }
 }

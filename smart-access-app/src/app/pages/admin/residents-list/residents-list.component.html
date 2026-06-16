@@ -1,0 +1,96 @@
+<div class="p-4 space-y-4 pb-6">
+
+  <!-- Encabezado -->
+  <div class="flex items-center justify-between pt-1">
+    <div>
+      <p class="text-muted-color text-xs">Administración</p>
+      <h2 class="text-color text-xl font-semibold mt-0.5">Residentes</h2>
+    </div>
+    <p-button
+      label="Nuevo"
+      icon="pi pi-plus"
+      size="small"
+      (onClick)="goToRegister()" />
+  </div>
+
+  <!-- Buscador -->
+  <p-iconfield iconPosition="left">
+    <p-inputicon styleClass="pi pi-search" />
+    <input
+      pInputText
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      placeholder="Buscar por nombre, casa o correo"
+      class="w-full" />
+  </p-iconfield>
+
+  <!-- Filtros por estado -->
+  <div class="flex items-center gap-2">
+    <button type="button" (click)="showActive.set(!showActive())"
+      class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97]"
+      [class]="showActive()
+        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+        : 'bg-surface-0 text-muted-color border-surface-200'">
+      <i class="pi pi-check-circle text-[10px] mr-1"></i>Activos
+      <span class="ml-1 opacity-80">{{ activeCount() }}</span>
+    </button>
+    <button type="button" (click)="showInactive.set(!showInactive())"
+      class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-[0.97]"
+      [class]="showInactive()
+        ? 'bg-surface-500 text-white border-surface-500 shadow-sm'
+        : 'bg-surface-0 text-muted-color border-surface-200'">
+      <i class="pi pi-ban text-[10px] mr-1"></i>Inactivos
+      <span class="ml-1 opacity-80">{{ inactiveCount() }}</span>
+    </button>
+  </div>
+
+  <!-- Lista -->
+  @if (loading()) {
+    <div class="px-4 py-10 text-center text-muted-color text-sm">
+      <i class="pi pi-spin pi-spinner mr-2"></i> Cargando residentes…
+    </div>
+  } @else if (loadFailed()) {
+    <div class="bg-surface-0 rounded-2xl px-4 py-10 text-center border border-surface-200">
+      <i class="pi pi-exclamation-triangle text-3xl text-muted-color"></i>
+      <p class="text-sm text-muted-color mt-2">No se pudieron cargar los residentes.</p>
+      <p-button label="Reintentar" icon="pi pi-refresh" size="small" styleClass="mt-3" [outlined]="true" (onClick)="load()" />
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="bg-surface-0 rounded-2xl px-4 py-10 text-center border border-surface-200">
+      <i class="pi pi-users text-3xl text-muted-color"></i>
+      <p class="text-sm text-muted-color mt-2">
+        {{ search() ? 'Sin coincidencias.' : 'Aún no hay residentes registrados.' }}
+      </p>
+    </div>
+  } @else {
+    <div class="space-y-2">
+      @for (r of filtered(); track r.id) {
+        <button type="button" (click)="goToEdit(r.id)"
+          class="w-full text-left bg-surface-0 rounded-2xl p-3 shadow-sm border border-surface-200 flex items-center gap-3 transition-transform active:scale-[0.99]"
+          [class.opacity-60]="!r.isActive">
+          <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0"
+            [class.bg-primary]="r.isActive && !photoSrc(r)"
+            [class.bg-surface-400]="!r.isActive && !photoSrc(r)"
+            [class.grayscale]="!r.isActive">
+            @if (photoSrc(r); as src) {
+              <img [src]="src" [alt]="r.name" class="w-full h-full object-cover" />
+            } @else {
+              <span class="text-white text-xs font-bold">{{ initials(r.name) }}</span>
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-color truncate">{{ r.name }}</p>
+              @if (!r.isActive) {
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-surface-100 text-muted-color shrink-0">Inactivo</span>
+              }
+            </div>
+            <p class="text-xs text-muted-color truncate">Casa {{ r.houseNumber }} · {{ r.email }}</p>
+          </div>
+          <i class="text-muted-color text-sm shrink-0"
+            [class.pi]="true" [class.pi-pencil]="r.isActive" [class.pi-replay]="!r.isActive"></i>
+        </button>
+      }
+    </div>
+  }
+</div>

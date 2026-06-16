@@ -1,3 +1,32 @@
+:root{
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+/* Dark mode surface overrides
+ * PrimeNG Aura's surface-0 = #ffffff in BOTH modes (it's a text-contrast white, not a bg token).
+ * We remap the background/border surface utilities to the zinc dark palette when .dark is active.
+ * This CSS is unlayered → it wins over Tailwind's @layer utilities automatically. */
+:where(.dark, .dark *) {
+  .bg-surface-0   { background-color: var(--p-surface-800); }
+  .bg-surface-50  { background-color: var(--p-surface-900); }
+  .bg-surface-100 { background-color: var(--p-surface-700); }
+
+  /* Opacity-modified surface variants */
+  .bg-surface-0\/70 { background-color: color-mix(in srgb, var(--p-surface-800), transparent 40%); }
+
+  .border-surface-100,
+  .border-surface-200 { border-color: var(--p-surface-700); }
+
+  /* Tailwind divide utilities apply border-color to inter-child borders */
+  .divide-surface-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--p-surface-700); }
+
+  /* Primary tint: light blue → deep blue in dark */
+  .bg-primary-50 { background-color: var(--p-primary-950); }
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -13,6 +42,33 @@ html, body {
   color: var(--p-red-500) !important;
 
   .p-menuitem-icon { color: var(--p-red-500) !important; }
+}
+
+/* Revelado animado del QR (mostrar/ocultar). grid-template-rows 0fr→1fr anima el
+   alto automático de forma fluida e interrumpible; opacidad acompaña la transición. */
+.qr-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 260ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 200ms ease-out;
+}
+
+.qr-reveal.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.qr-reveal__inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-reveal {
+    transition-duration: 1ms;
+  }
 }
 
 /* Safe-area para dispositivos con notch / home indicator */

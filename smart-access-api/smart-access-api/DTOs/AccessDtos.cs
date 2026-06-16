@@ -45,6 +45,8 @@ namespace smart_access_api.DTOs
         public string Id { get; set; } = string.Empty;
         public string? UserId { get; set; }
         public string ResidentId { get; set; } = string.Empty;
+        public string? ResidentName { get; set; }
+        public string? HouseNumber { get; set; }
         public string? VisitorName { get; set; }
         public string? VisitorIdNumber { get; set; }
         public string? VisitorVehiclePlate { get; set; }
@@ -57,11 +59,13 @@ namespace smart_access_api.DTOs
         public string Result { get; set; } = string.Empty;
         public string? RejectionReason { get; set; }
 
-        public static AccessEventResponseDto From(AccessEvent e) => new()
+        public static AccessEventResponseDto From(AccessEvent e, string? residentName = null, string? houseNumber = null) => new()
         {
             Id = e.Id,
             UserId = e.UserId,
             ResidentId = e.ResidentId,
+            ResidentName = residentName,
+            HouseNumber = houseNumber,
             VisitorName = e.VisitorName,
             VisitorIdNumber = e.VisitorIdNumber,
             VisitorVehiclePlate = e.VisitorVehiclePlate,

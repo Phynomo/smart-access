@@ -35,6 +35,18 @@ export class ApiService {
     return headers;
   }
 
+  /**
+   * Cabeceras para subir archivos: SIN Content-Type, para que el navegador fije
+   * el `multipart/form-data; boundary=…` automáticamente.
+   */
+  private buildUploadHeaders(): HttpHeaders {
+    let headers = new HttpHeaders({ 'ngrok-skip-browser-warning': 'true' });
+    if (this.token) {
+      headers = headers.set('Authorization', `Bearer ${this.token}`);
+    }
+    return headers;
+  }
+
   private buildParams(params?: QueryParams): HttpParams {
     if (!params) return new HttpParams();
     return Object.entries(params).reduce(
@@ -45,9 +57,23 @@ export class ApiService {
 
   private url(path: string): string {
     // Evita doble slash si `path` ya empieza con /
-    var path = `${this.base}/${path.replace(/^\//, '')}`;
-    alert(path);
-    return path;
+    return `${this.base}/${path.replace(/^\//, '')}`;
+  }
+
+  /** Origen del API (apiUrl sin el sufijo /api), p. ej. http://localhost:5102 */
+  private get origin(): string {
+    return this.base.replace(/\/api\/?$/, '');
+  }
+
+  /**
+   * Construye la URL completa de un recurso estático servido por el API a partir
+   * de la ruta relativa que guardamos (p. ej. "/uploads/residents/x.jpg").
+   * Devuelve null si no hay ruta. Si ya es absoluta, la respeta.
+   */
+  mediaUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${this.origin}/${path.replace(/^\//, '')}`;
   }
 
   // ── Métodos HTTP ─────────────────────────────────────────────────────────
@@ -63,6 +89,13 @@ export class ApiService {
     return this.http.post<ApiResponse<T>>(this.url(path), body, {
       headers: this.buildHeaders(),
       params: this.buildParams(params),
+    });
+  }
+
+  /** Sube un archivo vía multipart/form-data (no fija Content-Type manualmente). */
+  postForm<T>(path: string, form: FormData): Observable<ApiResponse<T>> {
+    return this.http.post<ApiResponse<T>>(this.url(path), form, {
+      headers: this.buildUploadHeaders(),
     });
   }
 

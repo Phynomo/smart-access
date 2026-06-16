@@ -15,5 +15,6 @@ namespace smart_access_api.Persistence
         // Opcional: agregado precalculado del dashboard. Sólo se usa si se
         // habilita el caché de estadísticas (ver MODELS.md §6).
         public const string DailyStats = "dailystats";
+        public const string Notifications = "notifications";
     }
 }

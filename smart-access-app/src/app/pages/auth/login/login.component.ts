@@ -7,8 +7,10 @@ import { PasswordModule } from 'primeng/password';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../../core/services/auth.service';
 import { BiometricService } from '../../../core/services/biometric.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +23,7 @@ import { BiometricService } from '../../../core/services/biometric.service';
     IconFieldModule,
     InputIconModule,
     CheckboxModule,
+    DialogModule,
   ],
   templateUrl: './login.component.html',
 })
@@ -29,6 +32,7 @@ export class LoginComponent {
   private readonly biometric = inject(BiometricService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly notify = inject(NotificationService);
 
   readonly form = this.fb.group({
     identifier: ['', Validators.required],
@@ -38,6 +42,12 @@ export class LoginComponent {
   readonly loading      = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly submitted    = signal(false);
+
+  // ── Recuperar contraseña ───────────────────────────────────────────────────
+  readonly forgotVisible = signal(false);
+  readonly forgotIdentifier = signal('');
+  readonly forgotLoading = signal(false);
+  readonly forgotSent = signal(false);
 
   /** El dispositivo tiene biometría disponible (false en web). */
   readonly biometricAvailable = signal(false);
@@ -81,6 +91,29 @@ export class LoginComponent {
     } catch {
       // El usuario canceló o la verificación falló: no mostramos error intrusivo.
     }
+  }
+
+  // ── Recuperar contraseña ─────────────────────────────────────────────────
+
+  openForgotPassword(): void {
+    this.forgotIdentifier.set(this.form.controls.identifier.value ?? '');
+    this.forgotSent.set(false);
+    this.forgotVisible.set(true);
+  }
+
+  submitForgotPassword(): void {
+    const identifier = this.forgotIdentifier().trim();
+    if (!identifier) {
+      this.notify.warn('Ingresa tu correo o número de casa.');
+      return;
+    }
+
+    this.forgotLoading.set(true);
+    this.auth.forgotPassword(identifier).subscribe({
+      next: () => this.forgotSent.set(true),
+      error: (err) => this.notify.error(err?.error?.message ?? 'No se pudo procesar la solicitud.'),
+      complete: () => this.forgotLoading.set(false),
+    });
   }
 
   // ── Flujo compartido ────────────────────────────────────────────────────────

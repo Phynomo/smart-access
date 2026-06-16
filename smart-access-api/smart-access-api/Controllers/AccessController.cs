@@ -48,7 +48,26 @@ namespace smart_access_api.Controllers
         public async Task<IActionResult> GetAll([FromQuery] AccessQueryDto filters)
         {
             var events = await _accessService.Query(filters);
-            var data = events.Select(AccessEventResponseDto.From).ToList();
+
+            // Enriquecer con nombre y número de casa de los residentes involucrados.
+            var residentIds = events
+                .Where(e => !string.IsNullOrWhiteSpace(e.ResidentId))
+                .Select(e => e.ResidentId)
+                .Distinct();
+
+            var residents = await Task.WhenAll(
+                residentIds.Select(id => _residentService.GetById(id)));
+
+            var residentMap = residents
+                .Where(r => r is not null)
+                .ToDictionary(r => r!.Id, r => r!);
+
+            var data = events.Select(e =>
+            {
+                residentMap.TryGetValue(e.ResidentId, out var resident);
+                return AccessEventResponseDto.From(e, resident?.Name, resident?.HouseNumber);
+            }).ToList();
+
             return ApiResponse.Ok(data, "Log de accesos.").ToActionResult();
         }
 
@@ -62,7 +81,7 @@ namespace smart_access_api.Controllers
                 throw BusinessException.NotFound("No tienes un perfil de residente asociado.");
 
             var events = await _accessService.GetByResident(resident.Id);
-            var data = events.Select(AccessEventResponseDto.From).ToList();
+            var data = events.Select(e => AccessEventResponseDto.From(e)).ToList();
             return ApiResponse.Ok(data).ToActionResult();
         }
 
@@ -72,7 +91,7 @@ namespace smart_access_api.Controllers
         public async Task<IActionResult> GetShift([FromQuery] DateTime? since)
         {
             var events = await _accessService.GetShiftLog(CurrentUserId, since);
-            var data = events.Select(AccessEventResponseDto.From).ToList();
+            var data = events.Select(e => AccessEventResponseDto.From(e)).ToList();
             return ApiResponse.Ok(data, "Historial del turno.").ToActionResult();
         }
     }

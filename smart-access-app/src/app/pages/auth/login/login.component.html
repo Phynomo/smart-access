@@ -2,9 +2,7 @@
 
   <!-- Logo -->
   <div class="flex flex-col items-center gap-3 mb-8">
-    <div class="flex justify-center items-center bg-primary shadow-lg shadow-primary/30 rounded-2xl w-16 h-16">
-      <i class="text-white text-3xl pi pi-shield" aria-hidden="true"></i>
-    </div>
+    <img src="icon.svg" alt="Smart Access" class="shadow-lg shadow-primary/30 rounded-2xl w-20 h-20" />
     <div class="text-center">
       <h1 class="font-bold text-color text-2xl tracking-tight">Smart Access</h1>
       <p class="mt-1 text-muted-color text-sm">Control de Acceso Residencial</p>
@@ -81,7 +79,7 @@
       <div class="flex flex-col gap-1.5">
         <div class="flex justify-between items-center">
           <label for="login-password" class="font-medium text-color text-sm">Contraseña</label>
-          <button type="button"
+          <button type="button" (click)="openForgotPassword()"
                   class="bg-transparent p-0 border-0 text-primary text-xs hover:underline cursor-pointer">
             ¿Olvidaste tu contraseña?
           </button>
@@ -131,5 +129,42 @@
   <p class="mt-8 text-muted-color text-xs text-center">
     Smart Access v1.0 · © 2026 CEUTEC
   </p>
+
+  <!-- Dialog: recuperar contraseña -->
+  <p-dialog
+    [(visible)]="forgotVisible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '92vw', maxWidth: '380px' }"
+    header="Recuperar contraseña">
+
+    @if (forgotSent()) {
+      <div class="flex flex-col items-center gap-3 py-2 text-center">
+        <div class="flex justify-center items-center bg-emerald-100 dark:bg-emerald-900 rounded-full w-12 h-12">
+          <i class="text-emerald-600 dark:text-emerald-400 text-xl pi pi-check"></i>
+        </div>
+        <p class="text-color text-sm">
+          Si la cuenta existe, te enviamos un correo con instrucciones para recuperar tu contraseña.
+        </p>
+        <p-button label="Entendido" styleClass="w-full mt-1" (onClick)="forgotVisible.set(false)" />
+      </div>
+    } @else {
+      <p class="mb-4 text-muted-color text-xs">
+        Ingresa tu correo o número de casa y te enviaremos un enlace para crear una nueva contraseña.
+      </p>
+      <div class="space-y-1.5">
+        <label class="block font-medium text-muted-color text-xs">Correo o N° de casa</label>
+        <input pInputText
+          [ngModel]="forgotIdentifier()"
+          (ngModelChange)="forgotIdentifier.set($event)"
+          (keydown.enter)="submitForgotPassword()"
+          placeholder="ej: juan&#64;mail.com  o  A-101"
+          class="w-full" />
+      </div>
+      <p-button label="Enviar enlace" icon="pi pi-send" styleClass="w-full mt-4"
+        [loading]="forgotLoading()" (onClick)="submitForgotPassword()" />
+    }
+  </p-dialog>
 
 </div>
