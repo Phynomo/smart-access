@@ -2,6 +2,20 @@
   max-width: 640px;
   margin-inline: auto;
   padding: 1.25rem 1rem 2rem;
+
+  // Superficies tematizables. PrimeNG --p-surface-0 es blanco en AMBOS modos,
+  // así que en .dark remapeamos a la paleta zinc oscura (igual que styles.scss).
+  --notif-card-bg:     var(--p-surface-0);
+  --notif-card-border: var(--p-surface-200);
+  --notif-card-hover:  var(--p-surface-50);
+  --notif-soft-bg:     var(--p-surface-100);
+}
+
+:host-context(.dark) .notif-page {
+  --notif-card-bg:     var(--p-surface-800);
+  --notif-card-border: var(--p-surface-700);
+  --notif-card-hover:  var(--p-surface-700);
+  --notif-soft-bg:     var(--p-surface-700);
 }
 
 .notif-header {
@@ -41,7 +55,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--p-surface-100);
+  background: var(--notif-soft-bg);
   display: grid;
   place-items: center;
   font-size: 1.75rem;
@@ -79,18 +93,20 @@
   gap: .85rem;
   padding: .9rem 1rem;
   border-radius: 12px;
-  background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-100);
+  background: var(--notif-card-bg);
+  border: 1px solid var(--notif-card-border);
   cursor: pointer;
   transition: background .15s;
 
   &:hover {
-    background: var(--p-surface-50);
+    background: var(--notif-card-hover);
   }
 
+  // Tinte sutil del primario sobre la superficie actual: legible en claro y oscuro
+  // (la escala primary-50/200 no se invierte en dark, por eso no se usa directa).
   &--unread {
-    border-color: var(--p-primary-200);
-    background: var(--p-primary-50);
+    border-color: color-mix(in srgb, var(--p-primary-color) 38%, var(--notif-card-border));
+    background: color-mix(in srgb, var(--p-primary-color) 12%, var(--notif-card-bg));
   }
 }
 
@@ -113,7 +129,7 @@
   &.icon-wrap--departed {
     background: rgba(100, 116, 139, .1);
     color: var(--p-text-muted-color);
-    border: 1px solid var(--p-surface-200);
+    border: 1px solid var(--notif-card-border);
   }
 }
 

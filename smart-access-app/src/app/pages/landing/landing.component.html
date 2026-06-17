@@ -1,0 +1,279 @@
+<div class="landing-root">
+
+  <!-- ─── NAVBAR ─────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a routerLink="/landing" class="navbar-brand">
+        <img class="brand-icon" src="icon.svg" alt="Smart Access" />
+        <span>Smart Access</span>
+      </a>
+      <a routerLink="/login" class="btn-nav-cta">
+        Iniciar sesión
+        <i class="pi-arrow-right text-xs pi"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ──────────────────────────────────────────────────── -->
+  <section class="hero-section">
+    <div class="hero-bg-grid" aria-hidden="true"></div>
+    <div class="hero-glow" aria-hidden="true"></div>
+
+    <div class="hero-inner">
+      <!-- Copy -->
+      <div class="hero-copy">
+        <div class="hero-badge">
+          <span class="badge-pulse"></span>
+          Sistema de Control de Acceso Residencial
+        </div>
+
+        <h1 class="hero-headline">
+          Acceso residencial<br>
+          <span class="headline-accent">sin fricciones</span>
+        </h1>
+
+        <p class="hero-sub">
+          Digitaliza el ingreso de residentes y visitantes con
+          códigos&nbsp;QR seguros, logs inmutables y notificaciones
+          en tiempo real para toda la comunidad.
+        </p>
+
+        <a routerLink="/login" class="btn-hero-cta">
+          Comenzar ahora
+          <i class="pi-arrow-right pi"></i>
+        </a>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-val">3</span>
+            <span class="stat-lbl">roles de usuario</span>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-item">
+            <span class="stat-val">&lt;1s</span>
+            <span class="stat-lbl">validación de QR</span>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-item">
+            <span class="stat-val">100%</span>
+            <span class="stat-lbl">trazabilidad</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual -->
+      <div class="hero-visual" aria-hidden="true">
+        <!-- Main scan card -->
+        <div class="scan-card">
+          <div class="scan-card-header">
+            <div class="scan-chip">
+              <span class="chip-dot chip-dot--green"></span>
+              Escaneando QR
+            </div>
+            <span class="scan-ts">09:47 a.m.</span>
+          </div>
+
+          <div class="qr-area">
+            <!-- QR finder patterns (corner squares) -->
+            <div class="qr-finder qr-finder--tl"></div>
+            <div class="qr-finder qr-finder--tr"></div>
+            <div class="qr-finder qr-finder--bl"></div>
+            <!-- QR data modules (CSS grid) -->
+            <div class="qr-modules" aria-hidden="true">
+              @for (cell of qrPattern; track $index) {
+                <div class="qr-cell" [class.qr-cell--on]="cell"></div>
+              }
+            </div>
+            <!-- Scan line animation -->
+            <div class="scan-line"></div>
+            <!-- Scan frame corners -->
+            <div class="frame-corner frame-corner--tl"></div>
+            <div class="frame-corner frame-corner--tr"></div>
+            <div class="frame-corner frame-corner--bl"></div>
+            <div class="frame-corner frame-corner--br"></div>
+          </div>
+
+          <div class="access-result">
+            <div class="result-check">
+              <i class="pi pi-check"></i>
+            </div>
+            <div class="result-info">
+              <span class="result-label">Acceso autorizado</span>
+              <span class="result-name">Casa #12 — María González</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating notification -->
+        <div class="notif-float">
+          <div class="notif-icon">
+            <i class="pi pi-bell"></i>
+          </div>
+          <div class="notif-body">
+            <span class="notif-title">Visitante en puerta</span>
+            <span class="notif-sub">Juan Pérez · QR válido</span>
+          </div>
+        </div>
+
+        <!-- Floating role badge -->
+        <div class="role-float">
+          <i class="pi pi-shield"></i>
+          <span>Guardia verificado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ──────────────────────────────────────────────── -->
+  <section class="features-section">
+    <div class="section-inner">
+      <div class="section-eyebrow">Características</div>
+      <h2 class="section-heading">
+        Todo lo que necesitas para<br class="hidden md:block">
+        gestionar el acceso
+      </h2>
+
+      <div class="features-list">
+        @for (feat of features; track feat.title; let i = $index) {
+          <div class="feature-row" [class.feature-row--reverse]="i % 2 === 1">
+            <div class="feature-visual-wrap">
+              <div class="feature-orb" [style.background]="feat.accent + '15'" [style.border-color]="feat.accent + '25'">
+                <div class="feature-icon-ring" [style.border-color]="feat.accent + '40'">
+                  <i class="pi {{ feat.icon }} feature-icon" [style.color]="feat.accent"></i>
+                </div>
+                <div class="feature-glow" [style.background]="feat.accent + '20'"></div>
+              </div>
+            </div>
+            <div class="feature-text-wrap">
+              <div class="feature-tag" [style.color]="feat.accent" [style.background]="feat.accent + '12'">
+                <i class="pi {{ feat.icon }} text-xs"></i>
+                {{ feat.title }}
+              </div>
+              <h3 class="feature-title">{{ feat.title }}</h3>
+              <p class="feature-desc">{{ feat.description }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── HOW IT WORKS ──────────────────────────────────────────── -->
+  <section class="steps-section">
+    <div class="section-inner">
+      <div class="section-eyebrow">Flujo de acceso</div>
+      <h2 class="section-heading">Cómo funciona</h2>
+
+      <div class="steps-grid">
+        @for (step of steps; track step.number; let last = $last) {
+          <div class="step-card">
+            <div class="step-num-wrap">
+              <span class="step-num">{{ step.number }}</span>
+              <div class="step-icon-bg">
+                <i class="pi {{ step.icon }}"></i>
+              </div>
+            </div>
+            <h3 class="step-title">{{ step.title }}</h3>
+            <p class="step-desc">{{ step.description }}</p>
+          </div>
+          @if (!last) {
+            <div class="step-arrow" aria-hidden="true">
+              <i class="pi-arrow-right pi"></i>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ROLES ─────────────────────────────────────────────────── -->
+  <section class="roles-section">
+    <div class="section-inner">
+      <div class="section-eyebrow">Tres roles</div>
+      <h2 class="section-heading">Una plataforma para todos</h2>
+
+      <div class="roles-layout">
+        <!-- Admin — featured card (wider) -->
+        <div class="role-card role-card--admin">
+          <div class="role-card-header">
+            <div class="role-icon-wrap role-icon-wrap--admin">
+              <i class="pi pi-users"></i>
+            </div>
+            <h3 class="role-name">Administrador</h3>
+          </div>
+          <ul class="role-features">
+            <li><i class="pi pi-check-circle"></i>Gestión completa de residentes</li>
+            <li><i class="pi pi-check-circle"></i>Dashboard con gráficos y reportes</li>
+            <li><i class="pi pi-check-circle"></i>Log de accesos con filtros</li>
+            <li><i class="pi pi-check-circle"></i>Configuración de límites QR</li>
+          </ul>
+        </div>
+
+        <div class="roles-stack">
+          <!-- Seguridad -->
+          <div class="role-card role-card--security">
+            <div class="role-card-header">
+              <div class="role-icon-wrap role-icon-wrap--security">
+                <i class="pi pi-shield"></i>
+              </div>
+              <h3 class="role-name">Seguridad</h3>
+            </div>
+            <ul class="role-features">
+              <li><i class="pi pi-check-circle"></i>Escaneo de QR por cámara</li>
+              <li><i class="pi pi-check-circle"></i>Registro manual de visitantes</li>
+              <li><i class="pi pi-check-circle"></i>Log del turno activo</li>
+            </ul>
+          </div>
+
+          <!-- Residente -->
+          <div class="role-card role-card--resident">
+            <div class="role-card-header">
+              <div class="role-icon-wrap role-icon-wrap--resident">
+                <i class="pi pi-home"></i>
+              </div>
+              <h3 class="role-name">Residente</h3>
+            </div>
+            <ul class="role-features">
+              <li><i class="pi pi-check-circle"></i>QR permanente propio</li>
+              <li><i class="pi pi-check-circle"></i>Generación de QR de visita</li>
+              <li><i class="pi pi-check-circle"></i>Notificaciones en tiempo real</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FINAL CTA ─────────────────────────────────────────────── -->
+  <section class="final-cta-section">
+    <div class="cta-card">
+      <div class="cta-glow" aria-hidden="true"></div>
+      <div class="section-eyebrow eyebrow--light">Listo para empezar</div>
+      <h2 class="cta-heading">
+        Digitaliza el control de<br>acceso de tu residencial
+      </h2>
+      <p class="cta-sub">
+        Accede a tu panel ahora y empieza a gestionar el acceso
+        con seguridad y trazabilidad total.
+      </p>
+      <a routerLink="/login" class="btn-cta-large">
+        Iniciar sesión
+        <i class="pi-arrow-right pi"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+  <footer class="landing-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="icon.svg" alt="Smart Access" style="width:24px;height:24px;border-radius:6px" />
+        <span>Smart Access</span>
+      </div>
+      <span class="footer-note">
+        Programación IV Web · CCC205 · Q2 2026
+      </span>
+    </div>
+  </footer>
+
+</div>

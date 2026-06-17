@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   // Rutas públicas (sin layout)
@@ -9,14 +10,20 @@ export const routes: Routes = [
     redirectTo: 'login',
     pathMatch: 'full',
   },
-  // Ruta pública (sin layout)
+  {
+    path: 'landing',
+    loadComponent: () =>
+      import('./pages/landing/landing.component').then((m) => m.LandingComponent),
+  },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./pages/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'reset-password',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./pages/auth/reset-password/reset-password.component').then(
         (m) => m.ResetPasswordComponent,
@@ -36,8 +43,12 @@ export const routes: Routes = [
       },
       {
         path: 'accesos',
+        canActivate: [roleGuard],
+        data: { roles: ['resident'] },
         loadComponent: () =>
-          import('./pages/home/home.component').then((m) => m.HomeComponent),
+          import('./pages/resident/access-history/access-history.component').then(
+            (m) => m.AccessHistoryComponent,
+          ),
       },
       {
         path: 'visitas',
@@ -96,6 +107,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin/users-list/users-list.component').then(
             (m) => m.UsersListComponent,
+          ),
+      },
+      // ── Admin: log completo de accesos ───────────────────────────────────
+      {
+        path: 'admin/accesos',
+        canActivate: [roleGuard],
+        data: { roles: ['admin'] },
+        loadComponent: () =>
+          import('./pages/admin/access-log/access-log.component').then(
+            (m) => m.AccessLogComponent,
           ),
       },
       // ── Admin: registro y gestión de códigos QR ──────────────────────────

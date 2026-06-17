@@ -1,0 +1,58 @@
+/* Overlay del QR ampliado. Se mantiene montado y se anima con transiciones
+   interrumpibles (no keyframes) usando una curva ease-out fuerte. */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgb(15 23 42 / 0.8);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.qr-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* La tarjeta entra desde una escala casi completa (nunca desde scale(0)). */
+.qr-overlay__card,
+.qr-overlay__close {
+  transform: scale(0.92);
+  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.qr-overlay.is-open .qr-overlay__card,
+.qr-overlay.is-open .qr-overlay__close {
+  transform: scale(1);
+}
+
+.chart-wrap {
+  height: 220px;
+  position: relative;
+}
+
+.donut-wrap {
+  height: 240px;
+  position: relative;
+  max-width: 300px;
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-overlay {
+    transition-duration: 1ms;
+  }
+  .qr-overlay__card,
+  .qr-overlay__close {
+    transition-duration: 1ms;
+    transform: none;
+  }
+}

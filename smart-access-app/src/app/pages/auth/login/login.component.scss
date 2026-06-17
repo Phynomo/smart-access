@@ -1,0 +1,31 @@
+// ── Gradiente del login ──────────────────────────────────────────────────────
+// Totalmente configurable: ajusta cualquiera de estos tokens (color, posición,
+// tamaño e intensidad de cada "glow") para reconfigurar el fondo sin tocar el resto.
+// El color base lo aporta la clase Tailwind .bg-surface-50 (que ya se adapta a
+// claro/oscuro), aquí solo se superponen los destellos de marca.
+:host {
+  // Intensidad de cada destello (0 = invisible, 1 = full color de marca).
+  --login-glow-1-strength: 0.30;
+  --login-glow-2-strength: 0.22;
+  --login-glow-3-strength: 0.14;
+
+  // Color de cada destello (por defecto, tonos del primario de marca).
+  --login-glow-1-color: color-mix(in srgb, var(--p-primary-color) calc(var(--login-glow-1-strength) * 100%), transparent);
+  --login-glow-2-color: color-mix(in srgb, var(--p-primary-400, var(--p-primary-color)) calc(var(--login-glow-2-strength) * 100%), transparent);
+  --login-glow-3-color: color-mix(in srgb, var(--p-primary-300, var(--p-primary-color)) calc(var(--login-glow-3-strength) * 100%), transparent);
+
+  // Posición y radio de cada destello.
+  --login-glow-1-pos: 12% -8%;
+  --login-glow-2-pos: 92% 108%;
+  --login-glow-3-pos: 78% 12%;
+  --login-glow-size: 60%;
+}
+
+.login-bg {
+  background-image:
+    radial-gradient(circle at var(--login-glow-1-pos), var(--login-glow-1-color) 0%, transparent var(--login-glow-size)),
+    radial-gradient(circle at var(--login-glow-2-pos), var(--login-glow-2-color) 0%, transparent var(--login-glow-size)),
+    radial-gradient(circle at var(--login-glow-3-pos), var(--login-glow-3-color) 0%, transparent var(--login-glow-size));
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
