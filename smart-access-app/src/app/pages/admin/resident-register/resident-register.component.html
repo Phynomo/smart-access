@@ -1,0 +1,214 @@
+<div class="p-4 space-y-4 pb-6">
+
+  <!-- Encabezado -->
+  <div class="flex items-center gap-3 pt-1">
+    <button type="button" (click)="cancel()"
+      class="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-0 border border-surface-200 shrink-0">
+      <i class="pi pi-arrow-left text-muted-color text-sm"></i>
+    </button>
+    <div>
+      <p class="text-muted-color text-xs">Gestión de residentes</p>
+      <h2 class="text-color text-xl font-semibold mt-0.5">Nuevo residente</h2>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+    <!-- Datos del residente -->
+    <div class="bg-surface-0 rounded-2xl p-4 shadow-sm border border-surface-200 space-y-3">
+      <h3 class="font-semibold text-color text-sm flex items-center gap-2">
+        <i class="pi pi-user text-primary"></i> Datos del residente
+      </h3>
+
+      <!-- Nombre -->
+      <div>
+        <label class="block text-xs font-medium text-muted-color mb-1.5">Nombre completo</label>
+        <input pInputText formControlName="name" placeholder="Ej. Juan Pérez" class="w-full" />
+        @if (submitted() && form.controls.name.invalid) {
+          <p class="text-[11px] text-red-500 mt-1">El nombre es obligatorio (mín. 2 caracteres).</p>
+        }
+      </div>
+
+      <!-- Casa + Correo -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-muted-color mb-1.5">Número de casa</label>
+          <input pInputText formControlName="houseNumber" placeholder="Ej. 4B" class="w-full" />
+          @if (submitted() && form.controls.houseNumber.invalid) {
+            <p class="text-[11px] text-red-500 mt-1">Obligatorio.</p>
+          }
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted-color mb-1.5">Correo</label>
+          <input pInputText type="email" formControlName="email" placeholder="correo@ejemplo.com" class="w-full" />
+          @if (submitted() && form.controls.email.invalid) {
+            <p class="text-[11px] text-red-500 mt-1">Correo inválido.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-medium text-muted-color">Contraseña inicial</label>
+          <button type="button" (click)="generatePassword()"
+            class="text-[11px] font-medium text-primary flex items-center gap-1">
+            <i class="pi pi-refresh text-[10px]"></i> Generar
+          </button>
+        </div>
+        <p-password
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="Mínimo 6 caracteres"
+          styleClass="w-full"
+          inputStyleClass="w-full" />
+        @if (submitted() && form.controls.password.invalid) {
+          <p class="text-[11px] text-red-500 mt-1">La contraseña debe tener al menos 6 caracteres.</p>
+        }
+        <p class="text-[11px] text-muted-color mt-1">
+          Se genera automáticamente (8 caracteres) y se enviará al correo del residente. Puedes editarla.
+        </p>
+      </div>
+
+      <!-- Foto (opcional) -->
+      <div>
+        <label class="block text-xs font-medium text-muted-color mb-1.5">
+          Foto <span class="text-muted-color opacity-60">(opcional)</span>
+        </label>
+
+        <div class="flex items-center gap-3">
+          <!-- Avatar / preview -->
+          <div class="relative w-16 h-16 rounded-2xl overflow-hidden bg-surface-100 border border-surface-200 flex items-center justify-center shrink-0">
+            @if (photoPreview(); as src) {
+              <img [src]="src" alt="Foto del residente" class="w-full h-full object-cover" />
+            } @else {
+              <i class="pi pi-user text-muted-color text-xl"></i>
+            }
+            @if (uploadingPhoto()) {
+              <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <i class="pi pi-spin pi-spinner text-white"></i>
+              </div>
+            }
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <!-- Botón de selección (label envuelve un input file oculto) -->
+            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-surface-200 text-xs font-medium text-muted-color cursor-pointer active:bg-surface-50">
+              <i class="pi pi-upload text-sm"></i>
+              {{ photoPreview() ? 'Cambiar imagen' : 'Subir imagen' }}
+              <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden"
+                (change)="onPhotoSelected($event)" />
+            </label>
+            @if (photoPreview() && !uploadingPhoto()) {
+              <button type="button" (click)="removePhoto()"
+                class="ml-2 text-xs font-medium text-red-500">Quitar</button>
+            }
+            <p class="text-[11px] text-muted-color mt-1">JPG, PNG o WEBP · máx. 5 MB</p>
+          </div>
+        </div>
+
+        @if (photoError(); as msg) {
+          <p class="text-[11px] text-red-500 mt-1.5">{{ msg }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Vehículos -->
+    <div class="bg-surface-0 rounded-2xl p-4 shadow-sm border border-surface-200 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-color text-sm flex items-center gap-2">
+          <i class="pi pi-car text-emerald-600 dark:text-emerald-400"></i> Vehículos
+        </h3>
+        <span class="text-xs text-muted-color">{{ vehicles.length }}</span>
+      </div>
+
+      @if (vehicles.length === 0) {
+        <p class="text-xs text-muted-color">
+          Sin vehículos. Puedes agregar uno o más (opcional).
+        </p>
+      }
+
+      <div formArrayName="vehicles" class="space-y-3">
+        @for (group of vehicles.controls; track group; let i = $index) {
+          <div [formGroupName]="i"
+            class="rounded-xl border border-surface-200 p-3 space-y-3 relative bg-surface-50">
+
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-muted-color">Vehículo {{ i + 1 }}</span>
+              <button type="button" (click)="removeVehicle(i)" class="text-red-400 hover:text-red-500">
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            </div>
+
+            <!-- Placa -->
+            <div>
+              <label class="block text-[11px] font-medium text-muted-color mb-1">Placa</label>
+              <input pInputText formControlName="plate" placeholder="Ej. ABC-123" class="w-full uppercase" />
+              @if (submitted() && group.controls['plate'].invalid) {
+                <p class="text-[11px] text-red-500 mt-1">La placa es obligatoria (3–15 caracteres).</p>
+              }
+            </div>
+
+            <!-- Marca + Modelo -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-medium text-muted-color mb-1">Marca</label>
+                <input pInputText formControlName="brand" placeholder="Toyota" class="w-full" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-muted-color mb-1">Modelo</label>
+                <input pInputText formControlName="model" placeholder="Corolla" class="w-full" />
+              </div>
+            </div>
+
+            <!-- Color + Año -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-medium text-muted-color mb-1">Color</label>
+                <input pInputText formControlName="color" placeholder="Gris" class="w-full" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-muted-color mb-1">Año</label>
+                <p-inputnumber
+                  formControlName="year"
+                  [useGrouping]="false"
+                  [min]="1950"
+                  [max]="currentYear"
+                  placeholder="2020"
+                  styleClass="w-full"
+                  inputStyleClass="w-full" />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <p-button
+        type="button"
+        label="Agregar vehículo"
+        icon="pi pi-plus"
+        styleClass="w-full"
+        [outlined]="true"
+        size="small"
+        (onClick)="addVehicle()" />
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex gap-3">
+      <p-button
+        type="button"
+        label="Cancelar"
+        styleClass="flex-1"
+        severity="secondary"
+        [text]="true"
+        (onClick)="cancel()" />
+      <p-button
+        type="submit"
+        label="Registrar residente"
+        icon="pi pi-check"
+        styleClass="flex-1"
+        [loading]="saving()" />
+    </div>
+  </form>
+</div>

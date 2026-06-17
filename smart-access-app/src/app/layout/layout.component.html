@@ -1,0 +1,46 @@
+<div class="flex flex-col bg-surface-50" style="height: 100dvh;">
+  <app-header />
+  <main class="flex-1 overflow-y-auto">
+    <router-outlet />
+  </main>
+  <app-bottom-nav />
+</div>
+
+<!-- Primer ingreso: obliga a cambiar la clave autogenerada (sin pedir la anterior) -->
+<app-change-password-dialog [visible]="mustChangePassword()" [firstTime]="true" />
+
+<!-- Avisos (toasts) globales -->
+<p-toast position="top-center" [breakpoints]="{ '420px': { width: '92vw' } }" />
+
+<!-- Confirmación global con diseño propio (headless) -->
+<p-confirmdialog [style]="{ width: '90vw', maxWidth: '380px' }">
+  <ng-template #headless let-message let-onAccept="onAccept" let-onReject="onReject">
+    <div class="bg-surface-0 rounded-2xl p-5 w-full shadow-xl">
+      <div class="flex items-start gap-3 mb-5">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          [class]="message.acceptSeverity === 'success' ? 'bg-emerald-50 dark:bg-emerald-950'
+            : message.acceptSeverity === 'primary' ? 'bg-primary-50'
+            : 'bg-red-50 dark:bg-red-950'">
+          <i [class]="(message.icon || 'pi pi-exclamation-triangle') + ' text-lg ' + (message.acceptSeverity === 'success' ? 'text-emerald-600 dark:text-emerald-400' : message.acceptSeverity === 'primary' ? 'text-primary' : 'text-red-500')"></i>
+        </div>
+        <div class="min-w-0 pt-0.5">
+          <h3 class="text-color font-semibold text-sm">{{ message.header }}</h3>
+          <p class="text-muted-color text-xs mt-1 leading-relaxed">{{ message.message }}</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" (click)="onReject()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-medium text-muted-color bg-surface-100 transition-transform active:scale-[0.97]">
+          {{ message.rejectLabel || 'Cancelar' }}
+        </button>
+        <button type="button" (click)="onAccept()"
+          class="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-all active:scale-[0.97]"
+          [class]="message.acceptSeverity === 'success' ? 'bg-emerald-600 hover:bg-emerald-700'
+            : message.acceptSeverity === 'primary' ? 'bg-primary hover:bg-primary-600'
+            : 'bg-red-500 hover:bg-red-600'">
+          {{ message.acceptLabel || 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</p-confirmdialog>

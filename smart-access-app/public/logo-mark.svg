@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 1024 1024" fill="none" style="color:#ffffff" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Smart Access">
+  <!-- Chevron ascendente facetado. Hereda el color vía currentColor (default azul de marca);
+       recoloreable si se incrusta inline. -->
+  <path d="M512 264 L512 484 L360 700 L224 700 Z" fill="currentColor" fill-opacity="0.58"/>
+  <path d="M512 264 L800 700 L664 700 L512 484 Z" fill="currentColor"/>
+</svg>

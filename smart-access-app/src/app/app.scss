@@ -1,0 +1,8 @@
+// Estilos propios del componente raíz (actualmente vacío — el layout está en LayoutComponent)
+#app {
+  padding: 
+    calc(var(--safe-area-inset-top) + 32px)
+    calc(var(--safe-area-inset-right) + 20px)
+    calc(var(--safe-area-inset-bottom) + 24px)
+    calc(var(--safe-area-inset-left) + 20px);
+}

@@ -10,11 +10,16 @@ namespace smart_access_api.Services
     {
         private readonly FirestoreContext _context;
         private readonly IConfiguration _configuration;
+        private readonly NotificationService _notifications;
 
-        public AccessService(FirestoreContext context, IConfiguration configuration)
+        public AccessService(
+            FirestoreContext context,
+            IConfiguration configuration,
+            NotificationService notifications)
         {
-            _context = context;
+            _context       = context;
             _configuration = configuration;
+            _notifications = notifications;
         }
 
         private string QrSecret =>
@@ -40,7 +45,9 @@ namespace smart_access_api.Services
             var now = DateTime.UtcNow;
 
             // 2) Validar + marcar como usado + registrar evento, todo atómico.
-            var (accessEvent, resident) = await _context.RunTransactionAsync(async tx =>
+            //    La transacción también devuelve el tipo y nombre del visitante
+            //    para disparar la notificación fuera del scope transaccional.
+            var (accessEvent, resident, notifInfo) = await _context.RunTransactionAsync(async tx =>
             {
                 var qrSnap = await tx.GetSnapshotAsync(qrRef);
 
@@ -50,7 +57,7 @@ namespace smart_access_api.Services
                         residentId: string.Empty, visitorName: null, qrId: null,
                         eventType, guardId, AccessResults.Rejected, "El QR no existe.");
                     tx.Set(_context.AccessEvents.Document(notFound.Id), notFound);
-                    return (notFound, (Resident?)null);
+                    return (notFound, (Resident?)null, ((string?)null, (string?)null));
                 }
 
                 var qr = qrSnap.ConvertTo<QRCode>();
@@ -67,19 +74,25 @@ namespace smart_access_api.Services
                     reason = "El residente está inactivo.";
                 else if (qr.ExpiresAt is { } exp && exp.ToDateTime() < now)
                     reason = "QR vencido.";
-                else if (qr.QrType == QrTypes.Date && qr.IsUsed)
-                    reason = "QR ya utilizado.";
+                else if (qr.QrType == QrTypes.Date && qr.UseCount >= 2)
+                    reason = "QR agotado: ya se registraron entrada y salida.";
 
                 var authorized = reason is null;
 
-                // El QR de visita por fecha es de un solo uso: se marca atómicamente.
+                // QR de visita por fecha: permite hasta 2 usos (entrada + salida).
+                // Se marca como totalmente utilizado (isUsed) solo al segundo uso.
                 if (authorized && qr.QrType == QrTypes.Date)
                 {
-                    tx.Update(qrRef, new Dictionary<string, object>
+                    var newCount = qr.UseCount + 1;
+                    var updates = new Dictionary<string, object>
                     {
-                        ["isUsed"] = true,
-                        ["usedAt"] = Timestamp.FromDateTime(now),
-                    });
+                        ["useCount"] = newCount,
+                    };
+                    if (newCount == 1)
+                        updates["usedAt"] = Timestamp.FromDateTime(now);
+                    if (newCount >= 2)
+                        updates["isUsed"] = true;
+                    tx.Update(qrRef, updates);
                 }
 
                 var ev = BuildEvent(
@@ -92,8 +105,19 @@ namespace smart_access_api.Services
                     reason);
 
                 tx.Set(_context.AccessEvents.Document(ev.Id), ev);
-                return (ev, res);
+
+                // Datos para la notificación (solo si aplica notificar).
+                var shouldNotify = authorized && res is not null && qr.QrType != QrTypes.Permanent;
+                var info = shouldNotify ? (qr.QrType, qr.VisitorName) : ((string?)null, (string?)null);
+
+                return (ev, res, info);
             });
+
+            // Notificar al residente si un visitante ingresó/salió con su QR.
+            // Fire-and-forget: no bloquea la respuesta al guardia.
+            var (visitQrType, visitorName) = notifInfo;
+            if (visitQrType is not null && resident is not null)
+                _ = _notifications.CreateForVisitAsync(accessEvent, resident, visitQrType, visitorName);
 
             return BuildResult(accessEvent, resident);
         }

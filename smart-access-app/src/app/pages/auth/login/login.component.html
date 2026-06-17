@@ -1,0 +1,170 @@
+<div class="safe-top safe-bottom flex flex-col justify-center items-center bg-surface-50 p-6 min-h-dvh">
+
+  <!-- Logo -->
+  <div class="flex flex-col items-center gap-3 mb-8">
+    <img src="icon.svg" alt="Smart Access" class="shadow-lg shadow-primary/30 rounded-2xl w-20 h-20" />
+    <div class="text-center">
+      <h1 class="font-bold text-color text-2xl tracking-tight">Smart Access</h1>
+      <p class="mt-1 text-muted-color text-sm">Control de Acceso Residencial</p>
+    </div>
+  </div>
+
+  <!-- Card con el formulario -->
+  <div class="bg-surface-0 shadow-sm p-6 border border-surface-200 rounded-2xl w-full max-w-sm">
+
+    <h2 class="font-semibold text-color text-lg">Iniciar sesión</h2>
+    <p class="mt-1 mb-6 text-muted-color text-sm">
+      Ingresa con tu correo o número de casa
+    </p>
+
+    <!-- Error -->
+    @if (errorMessage()) {
+      <div role="alert" aria-live="assertive"
+           class="flex items-center gap-2 bg-red-50 dark:bg-red-950/50 mb-4 p-3 border border-red-200 dark:border-red-800 rounded-xl">
+        <i class="text-red-500 dark:text-red-400 pi pi-exclamation-circle shrink-0" aria-hidden="true"></i>
+        <span class="text-red-600 dark:text-red-400 text-sm">{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Inicio biométrico (solo si el dispositivo lo soporta y está activado) -->
+    @if (biometricAvailable() && biometricEnabled()) {
+      <p-button
+        type="button"
+        label="Iniciar con biometría"
+        icon="pi pi-lock-open"
+        severity="secondary"
+        [outlined]="true"
+        styleClass="w-full mb-4"
+        [disabled]="loading()"
+        (onClick)="onBiometricLogin()" />
+
+      <div class="flex items-center gap-3 mb-4">
+        <span class="flex-1 border-surface-200 border-t"></span>
+        <span class="text-muted-color text-xs">o con tu contraseña</span>
+        <span class="flex-1 border-surface-200 border-t"></span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4" novalidate>
+
+      <!-- Identificador -->
+      <div class="flex flex-col gap-1.5">
+        <label for="login-identifier" class="font-medium text-color text-sm">
+          Correo o N° de casa
+        </label>
+        <p-iconfield>
+          <p-inputicon styleClass="pi pi-at" />
+          <input
+            id="login-identifier"
+            pInputText
+            type="text"
+            formControlName="identifier"
+            placeholder="ej: juan&#64;mail.com  o  A-101"
+            fluid
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            (input)="clearError()"
+            [attr.aria-invalid]="(submitted() || form.controls.identifier.touched) && form.controls.identifier.invalid"
+            [attr.aria-describedby]="(submitted() || form.controls.identifier.touched) && form.controls.identifier.hasError('required') ? 'login-identifier-error' : null" />
+        </p-iconfield>
+        @if ((submitted() || form.controls.identifier.touched) && form.controls.identifier.hasError('required')) {
+          <span id="login-identifier-error" class="text-red-500 dark:text-red-400 text-xs">Este campo es requerido</span>
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <label for="login-password" class="font-medium text-color text-sm">Contraseña</label>
+          <button type="button" (click)="openForgotPassword()"
+                  class="bg-transparent p-0 border-0 text-primary text-xs hover:underline cursor-pointer">
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+        <p-password
+          inputId="login-password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          fluid
+          placeholder="••••••••"
+          autocomplete="current-password"
+          (input)="clearError()"
+          [ariaLabelledBy]="'login-password'" />
+        @if ((submitted() || form.controls.password.touched) && form.controls.password.hasError('required')) {
+          <span id="login-password-error" class="text-red-500 dark:text-red-400 text-xs">Este campo es requerido</span>
+        }
+      </div>
+
+      <!-- Activar biometría para próximos inicios -->
+      @if (biometricAvailable() && !biometricEnabled()) {
+        <div class="flex items-center gap-2">
+          <p-checkbox
+            inputId="remember-biometric"
+            [binary]="true"
+            [ngModel]="rememberBiometric()"
+            (ngModelChange)="rememberBiometric.set($event)"
+            [ngModelOptions]="{ standalone: true }" />
+          <label for="remember-biometric" class="text-muted-color text-sm cursor-pointer">
+            Activar inicio con biometría
+          </label>
+        </div>
+      }
+
+      <!-- Botón submit -->
+      <p-button
+        type="submit"
+        label="Iniciar sesión"
+        icon="pi pi-sign-in"
+        styleClass="w-full mt-1"
+        [loading]="loading()" />
+
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <p class="mt-8 text-muted-color text-xs text-center">
+    Smart Access v1.0 · © 2026 CEUTEC
+  </p>
+
+  <!-- Dialog: recuperar contraseña -->
+  <p-dialog
+    [(visible)]="forgotVisible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '92vw', maxWidth: '380px' }"
+    header="Recuperar contraseña">
+
+    @if (forgotSent()) {
+      <div class="flex flex-col items-center gap-3 py-2 text-center">
+        <div class="flex justify-center items-center bg-emerald-100 dark:bg-emerald-900 rounded-full w-12 h-12">
+          <i class="text-emerald-600 dark:text-emerald-400 text-xl pi pi-check"></i>
+        </div>
+        <p class="text-color text-sm">
+          Si la cuenta existe, te enviamos un correo con instrucciones para recuperar tu contraseña.
+        </p>
+        <p-button label="Entendido" styleClass="w-full mt-1" (onClick)="forgotVisible.set(false)" />
+      </div>
+    } @else {
+      <p class="mb-4 text-muted-color text-xs">
+        Ingresa tu correo o número de casa y te enviaremos un enlace para crear una nueva contraseña.
+      </p>
+      <div class="space-y-1.5">
+        <label class="block font-medium text-muted-color text-xs">Correo o N° de casa</label>
+        <input pInputText
+          [ngModel]="forgotIdentifier()"
+          (ngModelChange)="forgotIdentifier.set($event)"
+          (keydown.enter)="submitForgotPassword()"
+          placeholder="ej: juan&#64;mail.com  o  A-101"
+          class="w-full" />
+      </div>
+      <p-button label="Enviar enlace" icon="pi pi-send" styleClass="w-full mt-4"
+        [loading]="forgotLoading()" (onClick)="submitForgotPassword()" />
+    }
+  </p-dialog>
+
+</div>

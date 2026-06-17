@@ -38,9 +38,14 @@ namespace smart_access_api.Models
         [FirestoreProperty("token")]
         public string Token { get; set; } = string.Empty;
 
-        // Momento exacto del primer uso (para auditoría e invariante "no modificable").
+        // Momento exacto del primer uso (entrada).
         [FirestoreProperty("usedAt")]
         public Timestamp? UsedAt { get; set; }
+
+        // Número de veces que el QR ha sido utilizado exitosamente.
+        // Para QR tipo 'date': máximo 2 (una entrada + una salida).
+        [FirestoreProperty("useCount")]
+        public int UseCount { get; set; } = 0;
 
         [FirestoreProperty("createdAt")]
         public Timestamp CreatedAt { get; set; } = Timestamp.FromDateTime(DateTime.UtcNow);

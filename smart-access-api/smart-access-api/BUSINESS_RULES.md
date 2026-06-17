@@ -1,4 +1,4 @@
-# ResidentPass — Reglas de negocio y API
+# Smart Access — Reglas de negocio y API
 
 Este documento explica las **reglas de negocio** implementadas en el backend y el
 **contrato de la API** para integrar el frontend (Angular). Acompaña a
@@ -129,7 +129,13 @@ Base: `/api`. Todos requieren `Authorization: Bearer <token>` salvo los marcados
 
 ### Residentes
 - Crear un residente es una operación **atómica** (`WriteBatch`): crea la cuenta `User`
-  (rol resident), el perfil `Resident`, su **QR permanente** y los vehículos opcionales.
+  (rol resident) **sólo si no existe ya una con ese correo** (si existe, se reutiliza esa
+  cuenta y se valida que no esté ligada a otro residente), el perfil `Resident`, su
+  **QR permanente** y los vehículos opcionales.
+- La **contraseña inicial es autogenerada** (8 caracteres; el admin puede verla y cambiarla
+  en el panel). Cuando se crea una cuenta nueva, se le **envía por correo** la credencial
+  (correo + contraseña) vía `EmailService` (best-effort: si el envío falla, el residente
+  igual queda creado). El SMTP es configurable en `appsettings.json` (sección `Email`).
 - `email` único entre usuarios; `houseNumber` único entre residentes activos.
 - **Soft delete**: desactivar pone `isActive=false` en el residente y en su cuenta de
   login (para impedir el acceso), preservando todo el historial.
@@ -177,9 +183,10 @@ Base: `/api`. Todos requieren `Authorization: Bearer <token>` salvo los marcados
 
 ## 5. Decisiones tomadas (ajustables)
 
-1. **Crear residente = crear también su cuenta de login.** El admin envía una contraseña
-   inicial en el `POST /residents`. Alternativa: generar contraseña temporal y enviarla por
-   correo (requiere servicio de email).
+1. **Crear residente = crear también su cuenta de login** (rol resident), salvo que ya
+   exista un `User` con ese correo, en cuyo caso se reutiliza. La contraseña inicial es
+   **autogenerada** (el admin puede editarla) y se **envía por correo** al residente con
+   `EmailService` (SMTP configurable en `appsettings.json → Email`).
 2. **El límite "por residencia" se aplica a los QR `long_term`** (interpretación del PDF,
    que mezcla "permanentes" y "larga duración"). El QR permanente propio no cuenta.
 3. **Filtros de log en memoria.** Para no exigir múltiples índices compuestos de Firestore,

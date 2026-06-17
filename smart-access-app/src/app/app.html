@@ -1,2 +1,7 @@
-<router-outlet />
- <button pButton type="button" label="Click"></button> 
+<div id="app" class="flex flex-col bg-surface-50 dark:bg-surface-900" style="height: 100dvh;">
+  <app-header />
+  <main class="flex-1 overflow-y-auto">
+    <router-outlet />
+  </main>
+  <app-bottom-nav />
+</div>

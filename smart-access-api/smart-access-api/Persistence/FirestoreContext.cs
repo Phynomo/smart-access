@@ -18,8 +18,9 @@ namespace smart_access_api.Persistence
         public CollectionReference Residents => _db.Collection(CollectionNames.Residents);
         public CollectionReference Vehicles => _db.Collection(CollectionNames.Vehicles);
         public CollectionReference QRCodes => _db.Collection(CollectionNames.QRCodes);
-        public CollectionReference AccessEvents => _db.Collection(CollectionNames.AccessEvents);
-        public CollectionReference LabNotes => _db.Collection(CollectionNames.LabNotes);
+        public CollectionReference AccessEvents  => _db.Collection(CollectionNames.AccessEvents);
+        public CollectionReference Notifications => _db.Collection(CollectionNames.Notifications);
+        public CollectionReference LabNotes      => _db.Collection(CollectionNames.LabNotes);
 
         // Acceso crudo al FirestoreDb para casos avanzados (transacciones,
         // batched writes, colecciones que no figuren en el contexto).

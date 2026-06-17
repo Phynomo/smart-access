@@ -32,6 +32,12 @@ namespace smart_access_api.Models
         public const string Rejected = "rejected";
     }
 
+    public static class NotificationTypes
+    {
+        public const string VisitorArrived  = "visitor_arrived";
+        public const string VisitorDeparted = "visitor_departed";
+    }
+
     // Categorías válidas para una LabNote.
     public static class LabCategories
     {
