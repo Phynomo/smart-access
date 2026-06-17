@@ -1,0 +1,5 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chevron facetado a tamaño completo; @capacitor/assets aplica el inset de zona segura -->
+  <path d="M512 170 L512 485 L295 794 L100 794 Z" fill="#FFFFFF" fill-opacity="0.58"/>
+  <path d="M512 170 L924 794 L729 794 L512 485 Z" fill="#FFFFFF"/>
+</svg>

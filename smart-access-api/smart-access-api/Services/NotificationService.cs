@@ -58,5 +58,54 @@ namespace smart_access_api.Services
                     "Error al crear notificación para residente {ResidentId}", resident.Id);
             }
         }
+
+        // Lista las notificaciones del usuario, más recientes primero.
+        // Se ordena en memoria para no exigir un índice compuesto en Firestore.
+        public async Task<List<Notification>> GetForUserAsync(string userId, int limit = 50)
+        {
+            var snapshot = await _context.Notifications
+                .WhereEqualTo("userId", userId)
+                .GetSnapshotAsync();
+
+            return snapshot.Documents
+                .Select(d => d.ConvertTo<Notification>())
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(limit)
+                .ToList();
+        }
+
+        // Marca una notificación como leída, validando que pertenezca al usuario.
+        public async Task MarkAsReadAsync(string id, string userId)
+        {
+            var docRef = _context.Notifications.Document(id);
+            var doc = await docRef.GetSnapshotAsync();
+            if (!doc.Exists)
+                return;
+
+            var notification = doc.ConvertTo<Notification>();
+            if (notification.UserId != userId)
+                return; // No es del usuario: se ignora en silencio.
+
+            await docRef.UpdateAsync("isRead", true);
+        }
+
+        // Marca todas las no leídas del usuario como leídas (batch).
+        public async Task<int> MarkAllReadAsync(string userId)
+        {
+            var snapshot = await _context.Notifications
+                .WhereEqualTo("userId", userId)
+                .WhereEqualTo("isRead", false)
+                .GetSnapshotAsync();
+
+            if (snapshot.Count == 0)
+                return 0;
+
+            var batch = _context.Db.StartBatch();
+            foreach (var doc in snapshot.Documents)
+                batch.Update(doc.Reference, "isRead", true);
+
+            await batch.CommitAsync();
+            return snapshot.Count;
+        }
     }
 }

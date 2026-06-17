@@ -26,6 +26,7 @@ import { NotificationService } from '../../../core/services/notification.service
     DialogModule,
   ],
   templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   private readonly auth = inject(AuthService);
